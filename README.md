@@ -50,7 +50,7 @@ The XS-XML parser works in two modes:
 2. FILE mode
 
 
-The RAM and FILE mode examples have been provided in the test files 1 and 2 respectively.
+The RAM and FILE mode examples have been provided in [test file 1](https://github.com/melwyncarlo/XS-XML/blob/main/test_1.c) and [test file 2](https://github.com/melwyncarlo/XS-XML/blob/main/test_2.c) respectively.
 
 
 ### <br>RAM mode
