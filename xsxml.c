@@ -20,10 +20,7 @@ limitations under the License.
 #include <ctype.h>
 #include <stdlib.h>
 #include <string.h>
-
-
-/* The below code is just a test code for debugging purposes. */
-/* #include <stdio.h>                                         */
+#include <stdio.h>
 
 
 #include "xsxml.h"
@@ -107,9 +104,9 @@ typedef struct Xsxml_Private_Result
 } Xsxml_Private_Result;
 
 
-static const char *PROPERTY_NAMES_LIST[10] = 
+static const char *PROPERTY_NAMES_LIST[11] = 
 {
-    something
+    "nn", "l", "cN", "aN", "c", "an", "av", "a", "d", "ns", "ps"
 
 };
 
@@ -2178,7 +2175,7 @@ char *xsxml_files_property( Xsxml_Files *xsxml_files_object,
     io_obj.temporary_dir_path  = xsxml_files_object->node_directory_path;
     io_obj.temporary_file_name = xsxml_files_object->node_file_name;
     io_obj.node_i_value        = node_index;
-    io_obj.property_term       = PROPERTY_NAMES_LIST [property_name];
+    io_obj.property_term       = (char *) PROPERTY_NAMES_LIST [property_name];
     io_obj.node_j_value        = property_index;
     io_obj.data_str            = NULL;
 

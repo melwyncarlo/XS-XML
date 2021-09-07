@@ -39,9 +39,19 @@ Also note that all alphabetic input and data are case-sensitive.
 
 typedef enum Xsxml_Property
 {
-    XSXML_PROPERTY_NONE = -1, 
+    XSXML_PROPERTY_NONE                   = -1, 
 
-    XSXML_PROPERTY_NODE_NAME
+    XSXML_PROPERTY_NODE_NAME              = 0, 
+    XSXML_PROPERTY_NODE_LEVEL             = 1, 
+    XSXML_PROPERTY_NUMBER_OF_CONTENTS     = 2, 
+    XSXML_PROPERTY_NUMBER_OF_ATTRIBUTES   = 3, 
+    XSXML_PROPERTY_CONTENT                = 4, 
+    XSXML_PROPERTY_ATTRIBUTE_NAME         = 5, 
+    XSXML_PROPERTY_ATTRIBUTE_VALUE        = 6, 
+    XSXML_PROPERTY_ANCESTOR               = 7, 
+    XSXML_PROPERTY_DESCENDANT             = 8, 
+    XSXML_PROPERTY_NEXT_SIBLING           = 9, 
+    XSXML_PROPERTY_PREVIOUS_SIBLING       = 10
 
 } Xsxml_Property;
 
@@ -129,7 +139,7 @@ extern Xsxml_Files *xsxml_files_parse( const char *input_file_path,
 
 char *xsxml_files_property( Xsxml_Files *xsxml_files_object, 
                             size_t node_index, 
-                            char *property_name, 
+                            Xsxml_Property property_name, 
                             size_t property_index);
 
 size_t *xsxml_files_occurrence( Xsxml_Files *xsxml_files_object, 

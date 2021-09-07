@@ -26,6 +26,14 @@ gcc -O3 -Wall -std=c17 -Wextra -Wpedantic -pedantic-errors xsxml.c test_1.c -o t
 
 To run:
 ./test_1
+
+Output:
+Result Message : The file 'test_data.xml' has been successfully parsed.
+
+Number of occurrences : 8
+
+Node number of the first occurrence : 4
+Node number of the  last occurrence : 12
 */
 
 
@@ -37,15 +45,15 @@ int main()
 
     Xsxml *xml_data = xsxml_parse(xml_file_name);
 
-    printf("\n\n%s\n\n", xml_data->result_message);
+    printf("\n\nResult Message : %s\n\n", xml_data->result_message);
 
     size_t *o = xsxml_occurrence(xml_data, NULL, NULL, NULL, "123456", 1);
 
-    printf("\n\n");
+    printf("Number of occurrences : %lu\n\n", o[0]);
+    printf("Node number of the first occurrence : %lu\n", o[1]);
+    printf("Node number of the  last occurrence : %lu\n", o[o[0]]);
 
-    printf("%lu\n", o[0]);
-    printf("%lu\n", o[1]);
-    printf("%lu\n", o[o[0]]);
+    printf("\n\n");
 
     xsxml_unset(&xml_data);
 
