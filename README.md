@@ -31,8 +31,8 @@ Though it can parse `CDATA` [1] and character entity references (CER [2]).
 Also note that all alphabetic input and data are case-sensitive.
 
 
-<br>[1] CDATA are used for storing illegal characters like '<' and '&' : `<![CDATA[<&]]>`<br><br>
-[2] CERs are used to repace ASCII or Unicode (UTF-8) characters.<br>
+<br>[1] [CDATA](https://en.wikipedia.org/wiki/CDATA) are used for storing illegal characters like '<' and '&' : `<![CDATA[<&]]>`<br><br>
+[2] [CERs](https://en.wikipedia.org/wiki/List_of_XML_and_HTML_character_entity_references) are used to repace ASCII or Unicode (UTF-8) characters.<br>
 For example, consider the less-than (<) character:<br>
 - ASCII mode        :  `&lt;`
 - Decimal mode      :  `&#60;`
