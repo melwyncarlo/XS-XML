@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+
+================================================================================
+Data begins here:
+================================================================================
+
+-->
+
+<Fnclab_Library_Catalogue>
+
+   <Random_Tag>qwerty<![CDATA[[a&)]]></Random_Tag>
+   <Random_Sub_Tag>tyuiop</Random_Sub_Tag>
+
+   <Library name="boo">
+
+       <idcode>123456</idcode>rere
+       <br   />
+       <tyuiop>123456</tyuiop>
+
+       <tyuiop>
+           123456
+       </tyuiop>
+
+       <tyuiop>
+           123456
+       </tyuiop>
+       <tyuiop>
+           123456
+       </tyuiop>
+       <tyuiop>
+           123456
+       </tyuiop>
+       <tyuiop>
+           123456
+       </tyuiop>
+       <tyuiop>
+           1234567
+       </tyuiop>
+
+   </Library>
+
+</Fnclab_Library_Catalogue>
+
+<!--
+
+================================================================================
+Data ends here.
+================================================================================
+
+-->
+
