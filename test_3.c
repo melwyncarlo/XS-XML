@@ -42,20 +42,20 @@ Resultant data from file 'save_data.xml'
         <Name>
             Pac Man
         </Name>
-        <Name>
+        <Phone>
             000-111-222
-        </Name>
-        <Phone>
-            pac.man@human.org
-        </Phone>
-    </Human>
-    <Human>
-        <Phone>
-            Polo Man
         </Phone>
         <Email>
-            333-444-555
+            pac.man@human.org
         </Email>
+    </Human>
+    <Human>
+        <Name>
+            Polo Man
+        </Name>
+        <Phone>
+            333-444-555
+        </Phone>
         <Email>
             polo.man@human.org
         </Email>
@@ -86,10 +86,10 @@ int main()
     node_0_1.node_name   = "Human";
     node_0_2.node_name   = "Human";
     node_0_1_1.node_name = "Name";
-    node_0_1_2.node_name = "Name";
-    node_0_1_3.node_name = "Phone";
-    node_0_2_1.node_name = "Phone";
-    node_0_2_2.node_name = "Email";
+    node_0_1_2.node_name = "Phone";
+    node_0_1_3.node_name = "Email";
+    node_0_2_1.node_name = "Name";
+    node_0_2_2.node_name = "Phone";
     node_0_2_3.node_name = "Email";
 
     node_0.number_of_attributes     = 1;
