@@ -48,6 +48,10 @@ Also note that all alphabetic input and data are case-sensitive.
 /* #define INDENTATION 2                                      */
 
 
+#define MAX_INDENTATION                         10
+
+#define MAX_VERTICAL_SPACING                    10
+
 #define NODE_FILE_NAME_SIZE                     10
 
 #define RESULT_MESSAGE_MAX_LENGTH               200
@@ -1450,8 +1454,8 @@ static Xsxml_Private_Result *parse_operation( void **object,
                     result_obj->result_code = XSXML_RESULT_XML_FAILURE;
 
                     sprintf( &result_obj->result_message[0], 
-                             "Attribute values cannot be empty "
-                             "(i.e. contain a lone attribute name).");
+                             "If empty, then attribute values must atleast "
+                             "contain the double quotes ("").");
 
                     return result_obj;
                 }
@@ -2424,5 +2428,630 @@ size_t *xsxml_files_occurrence( Xsxml_Files *xsxml_files_object,
     }
 
     return return_node_indices;
+}
+
+
+static void compile_all_nodes( Xsxml_Private_Result *result_obj, 
+                               Xsxml_Nodes *xsxml_node_object, 
+                               FILE *save_file_pointer, 
+                               unsigned int indentation, 
+                               unsigned int vertical_spacing, 
+                               unsigned int *level)
+{
+    /* Validating tag. */
+
+    if ((strchr(xsxml_node_object->node_name,  ' ') != NULL) 
+    ||  (strchr(xsxml_node_object->node_name, '\r') != NULL) 
+    ||  (strchr(xsxml_node_object->node_name, '\n') != NULL) 
+    ||  (strchr(xsxml_node_object->node_name, '\t') != NULL) 
+    ||  (strchr(xsxml_node_object->node_name, '\v') != NULL) 
+    ||  (strchr(xsxml_node_object->node_name, '\f') != NULL))
+    {
+        result_obj->result_code = XSXML_RESULT_XML_FAILURE;
+
+        sprintf( &result_obj->result_message[0], 
+                 "Tag names cannot have any space characters.");
+
+        return;
+    }
+
+    if (!isalpha(xsxml_node_object->node_name[0]) 
+    &&  (xsxml_node_object->node_name[0] != '_'))
+    {
+        result_obj->result_code = XSXML_RESULT_XML_FAILURE;
+
+        sprintf( &result_obj->result_message[0], 
+                 "Tag names must start with an alphabetical character "
+                 "[a-zA-Z] or underscore (_)");
+
+        return;
+    }
+
+    if ((tolower(xsxml_node_object->node_name[0]) == 'x') 
+    &&  (tolower(xsxml_node_object->node_name[1]) == 'm') 
+    &&  (tolower(xsxml_node_object->node_name[2]) == 'l'))
+    {
+        result_obj->result_code = XSXML_RESULT_XML_FAILURE;
+
+        sprintf( &result_obj->result_message[0], 
+                 "Tag names cannot start with 'xml' or "
+                 "any of its variants like XML, Xml, etc.");
+
+        return;
+    }
+
+    for (unsigned int i = 0; i < strlen(xsxml_node_object->node_name); i++)
+    {
+        if (!isalnum(xsxml_node_object->node_name[i]) 
+        &&  (xsxml_node_object->node_name[i] != '-') 
+        &&  (xsxml_node_object->node_name[i] != '_') 
+        &&  (xsxml_node_object->node_name[i] != '.'))
+        {
+            result_obj->result_code = XSXML_RESULT_XML_FAILURE;
+
+            sprintf( &result_obj->result_message[0], 
+                     "Tag names may contain letters [a-zA-z], "
+                     "digits [0-9], hyphens (-), underscores (_), "
+                     "and periods (.) only.");
+
+            return;
+        }
+    }
+
+    fprintf( save_file_pointer, 
+             "%*s<%s", 
+             indentation * (*level), "", 
+             xsxml_node_object->node_name);
+
+    const unsigned int n_attributes = xsxml_node_object->number_of_attributes;
+
+    for (unsigned int j = 0; j < n_attributes; j++)
+    {
+        /* Validating attribute name. */
+
+        for (unsigned int k = 0; k < n_attributes; k++)
+        {
+            if (k == j) continue;
+
+            if (strcmp(xsxml_node_object->attribute_name[j], xsxml_node_object->attribute_name[k]) == 0)
+            {
+                result_obj->result_code = XSXML_RESULT_XML_FAILURE;
+
+                sprintf( &result_obj->result_message[0], 
+                         "Within a given tag, attributes "
+                         "cannot share the same name.");
+
+                return;
+            }
+        }
+
+        if ((strchr(xsxml_node_object->attribute_name[j],  ' ') != NULL) 
+        ||  (strchr(xsxml_node_object->attribute_name[j], '\r') != NULL) 
+        ||  (strchr(xsxml_node_object->attribute_name[j], '\n') != NULL) 
+        ||  (strchr(xsxml_node_object->attribute_name[j], '\t') != NULL) 
+        ||  (strchr(xsxml_node_object->attribute_name[j], '\v') != NULL) 
+        ||  (strchr(xsxml_node_object->attribute_name[j], '\f') != NULL))
+        {
+            result_obj->result_code = XSXML_RESULT_XML_FAILURE;
+
+            sprintf( &result_obj->result_message[0], 
+                     "Tag names cannot have any space characters.");
+
+            return;
+        }
+
+        if (!isalpha(xsxml_node_object->attribute_name[j][0]) 
+        &&  (xsxml_node_object->attribute_name[j][0] != '_'))
+        {
+            result_obj->result_code = XSXML_RESULT_XML_FAILURE;
+
+            sprintf( &result_obj->result_message[0], 
+                     "Tag names must start with an alphabetical character "
+                     "[a-zA-Z] or underscore (_)");
+
+            return;
+        }
+
+        for (unsigned int i = 0; i < strlen(xsxml_node_object->attribute_name[j]); i++)
+        {
+            if (!isalnum(xsxml_node_object->attribute_name[j][i]) 
+            &&  (xsxml_node_object->attribute_name[j][i] != '-') 
+            &&  (xsxml_node_object->attribute_name[j][i] != '_') 
+            &&  (xsxml_node_object->attribute_name[j][i] != '.'))
+            {
+                result_obj->result_code = XSXML_RESULT_XML_FAILURE;
+
+                sprintf( &result_obj->result_message[0], 
+                         "Tag names may contain letters [a-zA-z], "
+                         "digits [0-9], hyphens (-), underscores (_), "
+                         "and periods (.) only.");
+
+                return;
+            }
+        }
+
+
+        /* Validating attribute value. */
+
+        if (strchr(xsxml_node_object->attribute_value[j],  '<') != NULL)
+        {
+            result_obj->result_code = XSXML_RESULT_XML_FAILURE;
+
+            sprintf( &result_obj->result_message[0], 
+                     "Attribute values may not contain the "
+                     "less-than (<) characters.");
+
+            return;
+        }
+
+        size_t ret_0 = 0;
+
+        while (1)
+        {
+            const char *ret_1 = strchr(&xsxml_node_object->attribute_value[j][ret_0], '&');
+
+            if (ret_1 == NULL)
+            {
+                break;
+            }
+            else /* if (ret_1 != NULL) */
+            {
+                const char *ret_2 = strchr( &xsxml_node_object->attribute_value
+                                        [j][ret_1 - xsxml_node_object->attribute_value[j]], 
+                                      ';');
+
+                if (ret_1 == NULL)
+                {
+                    result_obj->result_code = XSXML_RESULT_XML_FAILURE;
+
+                    sprintf( &result_obj->result_message[0], 
+                             "Attribute values may contain the ampersand (&) "
+                             "characters only as character entity references.");
+
+                    return;
+                }
+                else /* if (ret_1 != NULL) */
+                {
+                    char *cer_data = (char *) malloc(ret_2 - ret_1);
+
+                    memcpy( &cer_data[0], 
+                            &xsxml_node_object->attribute_value
+                                [j][ret_1 - xsxml_node_object->attribute_value[j]], 
+                            ret_2 - ret_1 - 1);
+
+                    if (!parse_cer(&cer_data))
+                    {
+                        free(cer_data);
+
+                        result_obj->result_code = XSXML_RESULT_XML_FAILURE;
+
+                        sprintf( &result_obj->result_message[0], 
+                                 "Attribute values may contain the ampersand (&) "
+                                 "characters only as character entity references.");
+
+                        return;
+                    }
+
+                    free(cer_data);
+                }
+
+                ret_0 = ret_2 - xsxml_node_object->attribute_value[j];
+            }
+        }
+
+        fprintf( save_file_pointer, 
+                 " %s=\"%s\"", 
+                 xsxml_node_object->attribute_name[j], 
+                 xsxml_node_object->attribute_value[j]);
+    }
+
+    fprintf(save_file_pointer, ">\n");
+
+    for (unsigned int count = 0; count < vertical_spacing; count++)
+    {
+        fprintf(save_file_pointer, "\n");
+    }
+
+    unsigned int content_i = 0;
+
+    const unsigned int n_contents = xsxml_node_object->number_of_contents;
+
+    if (n_contents > 0)
+    {
+        /* Validating PCDATA. */
+
+        for (unsigned int j = 0; j < n_contents; j++)
+        {
+            // <![CDATA[ ]]>
+
+            size_t ret_0 = 0;
+
+            int cdata_tags_n = 0;
+
+            size_t *cdata_tag_pos_start = (size_t *) malloc(1 * sizeof(size_t));
+            size_t *cdata_tag_pos_end   = (size_t *) malloc(1 * sizeof(size_t));
+
+            while (1)
+            {
+                const char *ret_1 = strstr(&xsxml_node_object->content[j][ret_0], "<![CDATA[");
+
+                if (ret_1 == NULL)
+                {
+                    break;
+                }
+                else /* if (ret_1 != NULL) */
+                {
+                    const char *ret_2 = strstr( &xsxml_node_object->content
+                                                    [j][ret_1 - xsxml_node_object->content[j]], 
+                                                "]]>");
+
+                    if (ret_1 == NULL)
+                    {
+                        result_obj->result_code = XSXML_RESULT_XML_FAILURE;
+
+                        sprintf( &result_obj->result_message[0], 
+                                 "A CDATA entity does not terminate.");
+
+                        return;
+                    }
+                    else /* if (ret_1 != NULL) */
+                    {
+                        cdata_tags_n++;
+
+                        cdata_tag_pos_start = 
+                        (size_t *) realloc( cdata_tag_pos_start, 
+                                            cdata_tags_n * sizeof(size_t));
+
+                        cdata_tag_pos_end = 
+                        (size_t *) realloc( cdata_tag_pos_end, 
+                                            cdata_tags_n * sizeof(size_t));
+
+                        cdata_tag_pos_start [cdata_tags_n - 1] = 
+                        ret_1 - xsxml_node_object->content[j];
+
+                        cdata_tag_pos_end [cdata_tags_n - 1] = 
+                        ret_2 - xsxml_node_object->content[j];
+                    }
+
+                    ret_0 = ret_2 - xsxml_node_object->content[j];
+                }
+            }
+
+            ret_0 = 0;
+
+            while (1)
+            {
+                const char *ret_1 = strchr(xsxml_node_object->content[j],  '<');
+
+                const size_t ret_1_pos = ret_1 - xsxml_node_object->content[j];
+
+                if (ret_1 == NULL)
+                {
+                    break;
+                }
+                else /* if (ret_1 != NULL) */
+                {
+                    int char_is_valid = 0;
+
+                    for (int k = 0; k < cdata_tags_n; k++)
+                    {
+                        if ((ret_1_pos > cdata_tag_pos_start[k]) 
+                        &&  (ret_1_pos < cdata_tag_pos_end[k]))
+                        {
+                            char_is_valid = 1;
+                            break;
+                        }
+                    }
+
+                    if (!char_is_valid)
+                    {
+                        result_obj->result_code = XSXML_RESULT_XML_FAILURE;
+
+                        sprintf( &result_obj->result_message[0], 
+                                 "A tag's PCDATA may not contain the "
+                                 "less-than (<) characters.");
+
+                        return;
+                    }
+                }
+
+                ret_0 = ret_1_pos;
+            }
+
+            ret_0 = 0;
+
+            while (1)
+            {
+                const char *ret_1 = strchr(&xsxml_node_object->content[j][ret_0], '&');
+
+                const size_t ret_1_pos = ret_1 - xsxml_node_object->content[j];
+
+                if (ret_1 == NULL)
+                {
+                    break;
+                }
+                else /* if (ret_1 != NULL) */
+                {
+                    int char_is_valid = 0;
+
+                    for (int k = 0; k < cdata_tags_n; k++)
+                    {
+                        if ((ret_1_pos > cdata_tag_pos_start[k]) 
+                        &&  (ret_1_pos < cdata_tag_pos_end[k]))
+                        {
+                            char_is_valid = 1;
+                            break;
+                        }
+                    }
+
+                    if (!char_is_valid)
+                    {
+                        const char *ret_2 = strchr( &xsxml_node_object->content
+                                                        [j][ret_1_pos], 
+                                                    ';');
+
+                        if (ret_1 == NULL)
+                        {
+                            result_obj->result_code = XSXML_RESULT_XML_FAILURE;
+
+                            sprintf( &result_obj->result_message[0], 
+                                     "A tag's PCDATA may contain the ampersand (&) "
+                                     "characters only as character entity references.");
+
+                            return;
+                        }
+                        else /* if (ret_1 != NULL) */
+                        {
+                            char *cer_data = (char *) malloc(ret_2 - ret_1);
+
+                            memcpy( &cer_data[0], 
+                                    &xsxml_node_object->attribute_value
+                                        [j][ret_1 - xsxml_node_object->attribute_value[j]], 
+                                    ret_2 - ret_1 - 1);
+
+                            if (!parse_cer(&cer_data))
+                            {
+                                free(cer_data);
+
+                                result_obj->result_code = XSXML_RESULT_XML_FAILURE;
+
+                                sprintf( &result_obj->result_message[0], 
+                                         "A tag's PCDATA may contain the ampersand (&) "
+                                         "characters only as character entity references.");
+
+                                return;
+                            }
+
+                            free(cer_data);
+                        }
+
+                        ret_0 = ret_2 - xsxml_node_object->attribute_value[j];
+                    }
+                    else /* if (char_is_valid) */
+                    {
+                        ret_0 = ret_1_pos;
+                    }
+                }
+            }
+        }
+    }
+
+    if (n_contents > 0)
+    {
+        fprintf( save_file_pointer, 
+                 "%*s%s\n", 
+                 indentation * ((*level) + 1), "", 
+                 xsxml_node_object->content[content_i++]);
+
+        for (unsigned int count = 0; count < vertical_spacing; count++)
+        {
+            fprintf(save_file_pointer, "\n");
+        }
+    }
+
+    if (xsxml_node_object->descendant != NULL)
+    {
+        Xsxml_Nodes *xsxml_sub_node_object = xsxml_node_object->descendant;
+
+        (*level)++;
+
+        while (xsxml_sub_node_object != NULL)
+        {
+            compile_all_nodes( result_obj, 
+                               xsxml_sub_node_object, 
+                               save_file_pointer, 
+                               indentation, 
+                               vertical_spacing, 
+                               level);
+
+            if (result_obj->result_code != XSXML_RESULT_SUCCESS) return;
+
+            if (xsxml_node_object->number_of_contents > 0)
+            {
+                fprintf( save_file_pointer, 
+                         "%*s%s\n", 
+                         indentation * ((*level) + 1), "", 
+                         xsxml_node_object->content[content_i++]);
+
+                for (unsigned int count = 0; count < vertical_spacing; count++)
+                {
+                    fprintf(save_file_pointer, "\n");
+                }
+            }
+
+            xsxml_sub_node_object = xsxml_sub_node_object->next_sibling;
+        }
+
+        (*level)--;
+    }
+
+    fprintf( save_file_pointer, 
+             "%*s",  
+             indentation * (*level), "");
+
+    fprintf( save_file_pointer, 
+             "</%s>\n",  
+             xsxml_node_object->node_name);
+
+    for (unsigned int count = 0; count < vertical_spacing; count++)
+    {
+        fprintf(save_file_pointer, "\n");
+    }
+}
+
+
+void xsxml_compile( Xsxml *xsxml_object, 
+                    const char *save_directory, 
+                    const char *save_file_name, 
+                    unsigned int indentation, 
+                    unsigned int vertical_spacing)
+{
+    if (xsxml_object->result_message == NULL)
+    {
+        xsxml_object->result_message = (char *) malloc(RESULT_MESSAGE_MAX_LENGTH);
+    }
+
+    if (indentation > MAX_INDENTATION)
+    {
+        xsxml_object->result = XSXML_RESULT_FILE_FAILURE;
+
+        sprintf( &xsxml_object->result_message[0], 
+                 "Error in input argument number 4 of function 'xsxml_compile'."
+                 "You cannot have more than %u horizontal spaces as indentation.", 
+                 MAX_INDENTATION);
+
+        return;
+    }
+
+    if (vertical_spacing > MAX_VERTICAL_SPACING)
+    {
+        xsxml_object->result = XSXML_RESULT_FILE_FAILURE;
+
+        sprintf( &xsxml_object->result_message[0], 
+                 "Error in input argument number 5 of function 'xsxml_compile'."
+                 "You cannot have more than %u vertical spaces.", 
+                 MAX_VERTICAL_SPACING);
+
+        return;
+    }
+
+    char *save_directory_modified;
+
+    if ((save_directory == NULL) || (save_directory[0] == 0))
+    {
+        save_directory_modified    = malloc(sizeof(char));
+
+        save_directory_modified[0] = 0;
+    }
+    else /* if (save_directory != NULL) */
+    {
+        /* The plus one (+1) is for the forward slash character, if required. */
+        save_directory_modified = malloc(strlen(save_directory) + 1);
+
+        memcpy( &save_directory_modified[0], 
+                &save_directory[0], 
+                strlen(save_directory));
+
+        if (save_directory_modified [strlen(save_directory_modified) - 1] != '/')
+        {
+            save_directory_modified [strlen(save_directory_modified)] = '/';
+        }
+    }
+
+    /* The plus one (+1) is for the char array's null terminator. */
+    char save_file_path [strlen(save_directory_modified) + strlen(save_file_name) + 1];
+
+    save_file_path [strlen(save_directory_modified) + strlen(save_file_name)] = 0;
+
+    memcpy( &save_file_path[0], 
+            &save_directory_modified[0], 
+            strlen(save_directory_modified));
+
+    memcpy( &save_file_path[strlen(save_directory_modified)], 
+            &save_file_name[0], 
+            strlen(save_file_name));
+
+    free(save_directory_modified);
+
+    FILE *save_file_pointer = fopen(save_file_path, "w");
+
+    if (save_file_pointer == NULL)
+    {
+        xsxml_object->result = XSXML_RESULT_FILE_FAILURE;
+
+        sprintf( &xsxml_object->result_message[0], 
+                 "The save directory '%s' does not exist.", 
+                 save_directory);
+
+        return;
+    }
+
+    if (xsxml_object->node == NULL)
+    {
+        xsxml_object->result = XSXML_RESULT_XML_FAILURE;
+
+        sprintf( &xsxml_object->result_message[0], 
+                 "There must be exactly one outermost tag.");
+
+        return;
+    }
+
+    if (xsxml_object->node[0] == NULL)
+    {
+        xsxml_object->result = XSXML_RESULT_XML_FAILURE;
+
+        sprintf( &xsxml_object->result_message[0], 
+                 "There must be exactly one outermost tag.");
+
+        return;
+    }
+
+    fprintf(save_file_pointer, "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n\n");
+
+    for (unsigned int count = 0; count < vertical_spacing; count++)
+    {
+        fprintf(save_file_pointer, "\n");
+    }
+
+    unsigned int level = 0;
+
+    Xsxml_Private_Result private_result;
+
+    private_result.result_code = XSXML_RESULT_SUCCESS;
+
+    private_result.result_message = (char *) malloc(RESULT_MESSAGE_MAX_LENGTH);
+
+    compile_all_nodes( &private_result, 
+                       xsxml_object->node[0], 
+                       save_file_pointer, 
+                       indentation, 
+                       vertical_spacing, 
+                       &level);
+
+    if (private_result.result_code == XSXML_RESULT_SUCCESS)
+    {
+        fprintf(save_file_pointer, "\n");
+
+        fclose(save_file_pointer);
+
+        xsxml_object->result = XSXML_RESULT_SUCCESS;
+
+        sprintf( &xsxml_object->result_message[0], 
+                 "The XSXML object's information has been successfully compiled "
+                 "into file '%s'.", 
+                 save_file_name);
+    }
+    else /* if (private_result.result_code != XSXML_RESULT_SUCCESS) */
+    {
+        fclose(save_file_pointer);
+
+        remove(save_file_path);
+
+        xsxml_object->result = private_result.result_code;
+
+        sprintf( &xsxml_object->result_message[0], 
+                 "%s", 
+                 private_result.result_message);
+    }
 }
 

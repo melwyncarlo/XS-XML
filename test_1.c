@@ -39,7 +39,8 @@ Node number of the  last occurrence : 12
 
 int main()
 {
-    setvbuf(stdout, NULL, _IONBF, 0);
+    /* The below code is just a test code for debugging purposes. */
+    /* setvbuf(stdout, NULL, _IONBF, 0);                          */
 
     const char *xml_file_name = "test_data.xml";
 

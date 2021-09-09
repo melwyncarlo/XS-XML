@@ -130,6 +130,12 @@ size_t *xsxml_occurrence( Xsxml *xsxml_object,
                           char *content, 
                           Xsxml_Direction direction);
 
+extern void xsxml_compile( Xsxml *xsxml_object, 
+                           const char *save_directory, 
+                           const char *save_file_name, 
+                           unsigned int indentation, 
+                           unsigned int vertical_spacing);
+
 extern void xsxml_unset(Xsxml **xsxml_object);
 
 
