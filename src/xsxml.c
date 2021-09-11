@@ -2600,7 +2600,7 @@ static void compile_all_nodes( Xsxml_Private_Result *result_obj,
                                         [j][ret_1 - xsxml_node_object->attribute_value[j]], 
                                       ';');
 
-                if (ret_1 == NULL)
+                if (ret_2 == NULL)
                 {
                     result_obj->result_code = XSXML_RESULT_XML_FAILURE;
 
@@ -2610,7 +2610,7 @@ static void compile_all_nodes( Xsxml_Private_Result *result_obj,
 
                     return;
                 }
-                else /* if (ret_1 != NULL) */
+                else /* if (ret_2 != NULL) */
                 {
                     char *cer_data = (char *) malloc(ret_2 - ret_1);
 
@@ -2685,7 +2685,7 @@ static void compile_all_nodes( Xsxml_Private_Result *result_obj,
                                                     [j][ret_1 - xsxml_node_object->content[j]], 
                                                 "]]>");
 
-                    if (ret_1 == NULL)
+                    if (ret_2 == NULL)
                     {
                         result_obj->result_code = XSXML_RESULT_XML_FAILURE;
 
@@ -2694,7 +2694,7 @@ static void compile_all_nodes( Xsxml_Private_Result *result_obj,
 
                         return;
                     }
-                    else /* if (ret_1 != NULL) */
+                    else /* if (ret_2 != NULL) */
                     {
                         cdata_tags_n++;
 
@@ -2721,7 +2721,7 @@ static void compile_all_nodes( Xsxml_Private_Result *result_obj,
 
             while (1)
             {
-                const char *ret_1 = strchr(xsxml_node_object->content[j],  '<');
+                const char *ret_1 = strchr(&xsxml_node_object->content[j][ret_0],  '<');
 
                 const size_t ret_1_pos = ret_1 - xsxml_node_object->content[j];
 
@@ -2790,7 +2790,7 @@ static void compile_all_nodes( Xsxml_Private_Result *result_obj,
                                                         [j][ret_1_pos], 
                                                     ';');
 
-                        if (ret_1 == NULL)
+                        if (ret_2 == NULL)
                         {
                             result_obj->result_code = XSXML_RESULT_XML_FAILURE;
 
@@ -2800,7 +2800,7 @@ static void compile_all_nodes( Xsxml_Private_Result *result_obj,
 
                             return;
                         }
-                        else /* if (ret_1 != NULL) */
+                        else /* if (ret_2 != NULL) */
                         {
                             char *cer_data = (char *) malloc(ret_2 - ret_1);
 

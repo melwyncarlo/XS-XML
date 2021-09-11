@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+
+<!--
+Copyright 2021 Melwyn Francis Carlo <carlo.melwyn@outlook.com>
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+   http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+-->
+
+<html>
+
+    <head>
+        <title>XS-XML Parse | JavaScript Version Test</title>
+        <style>
+            table, th, td
+            {
+                border      : 1px solid black;
+            }
+            table
+            {
+                margin      : auto;
+            }
+            th, td
+            {
+                padding     : 10px 20px;
+            }
+            button
+            {
+                padding     : 5px 10px;
+                font-size   : 15px;
+                cursor      : pointer;
+            }
+            div
+            {
+                text-align  : center;
+            }
+            input
+            {
+                display     : none;
+            }
+        </style>
+        <script type="text/javascript" src="xsxml.js"></script>
+        <script>
+            async function parse_file(file_object)
+            {
+                if (file_object.files[0])
+                {
+                    xsxml_object = await xsxml_parse(file_object.files[0]);
+
+                    alert(xsxml_object.result_message);
+
+                    document.getElementById('table-tbody').innerHTML = '';
+
+                    if (xsxml_object.result == Xsxml_Result.XSXML_RESULT_SUCCESS)
+                    {
+                        var input_file_name = file_object.files[0].value;
+
+                        if (input_file_name == null || input_file_name == undefined)
+                        {
+                            input_file_name = file_object.files[0].name;
+                        }
+
+                        if (input_file_name.indexOf('/') != -1 || input_file_name.indexOf('\\') != -1)
+                        {
+                            input_file_name = input_file_name.split('/').reverse()[0];
+
+                            if (input_file_name.length == input_file.value.length)
+                            {
+                                input_file_name = input_file.value.split('\\').reverse()[0];
+                            }
+                        }
+
+                        document.getElementById('file-name-span').innerHTML = input_file_name;
+
+                        for (var i = 0; i < xsxml_object.number_of_nodes; i++)
+                        {
+                            var row_i = document.getElementById('table-tbody').insertRow(-1);
+
+                            var cell_i1 = row_i.insertCell(0);
+                            cell_i1.innerHTML = (i + 1).toString() + '.';
+
+                            var cell_i2 = row_i.insertCell(1);
+                            cell_i2.innerHTML = xsxml_object.node[i].node_name;
+
+                            var cell_i3 = row_i.insertCell(2);
+                            cell_i3.innerHTML = xsxml_object.node[i].depth;
+
+                            var cell_i4 = row_i.insertCell(3);
+                            cell_i4.innerHTML = '';
+                            for (var j = 0; j < xsxml_object.node[i].number_of_attributes; j++)
+                            {
+                                if (j != 0)
+                                {
+                                    cell_i4.innerHTML += '<br>';
+                                }
+                                cell_i4.innerHTML += xsxml_object.node[i].attribute_name[j] 
+                                                   + ' = ' 
+                                                   + xsxml_object.node[i].attribute_value[j];
+                            }
+
+                            var cell_i5 = row_i.insertCell(4);
+                            cell_i5.innerHTML = '';
+                            for (var j = 0; j < xsxml_object.node[i].number_of_contents; j++)
+                            {
+                                if (j != 0)
+                                {
+                                    cell_i5.innerHTML += '<br><br>';
+                                }
+                                cell_i5.innerHTML += xsxml_object.node[i].content[j];
+                            }
+                        }
+                    }
+                }
+            }
+        </script>
+    </head>
+
+    <body>
+
+        <br><h2 align="center">XS-XML Parse</h2>
+
+        <br><hr><br>
+
+        <input type     = "file" 
+               id       = "parse-file" 
+               onchange = "parse_file(this)">
+
+        <div>
+            <button onclick="document.getElementById('parse-file').click()">
+                Parse an XML file
+            </button>
+        </div>
+
+        <br><hr><br>
+
+        <div>
+            <b>File name : </b><span id="file-name-span">TBA</span>
+        </div>
+
+        <br>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Sr. No.</th>
+                    <th>Tag name</th>
+                    <th>Tag level</th>
+                    <th>Tag attributes</th>
+                    <th>Tag content</th>
+                </tr>
+            </thead>
+            <tbody id="table-tbody"></tbody>
+        </table>
+
+        <br><br>
+
+    </body>
+
+</html>
