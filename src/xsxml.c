@@ -2838,10 +2838,21 @@ static void compile_all_nodes( Xsxml_Private_Result *result_obj,
 
     if (n_contents > 0)
     {
-        fprintf( save_file_pointer, 
-                 "%*s%s\n", 
-                 indentation * ((*level) + 1), "", 
-                 xsxml_node_object->content[content_i++]);
+        fprintf(save_file_pointer, "%*s", indentation * ((*level) + 1), "");
+
+        const size_t CONTENT_LEN = strlen(xsxml_node_object->content[content_i]);
+
+        for (unsigned int i = 0; i < CONTENT_LEN; i++)
+        {
+            if (xsxml_node_object->content[content_i][i] == '\n')
+                fprintf(save_file_pointer, "%*s", indentation * ((*level) + 1), "");
+            else
+                fputc(xsxml_node_object->content[content_i][i], save_file_pointer);
+        }
+
+        fputc('\n', save_file_pointer);
+
+        content_i++;
 
         for (unsigned int count = 0; count < vertical_spacing; count++)
         {
@@ -2866,12 +2877,23 @@ static void compile_all_nodes( Xsxml_Private_Result *result_obj,
 
             if (result_obj->result_code != XSXML_RESULT_SUCCESS) return;
 
-            if (xsxml_node_object->number_of_contents > 0)
+            if (n_contents > 1)
             {
-                fprintf( save_file_pointer, 
-                         "%*s%s\n", 
-                         indentation * ((*level) + 1), "", 
-                         xsxml_node_object->content[content_i++]);
+                fprintf(save_file_pointer, "%*s", indentation * ((*level) + 1), "");
+
+                const size_t CONTENT_LEN = strlen(xsxml_node_object->content[content_i]);
+
+                for (unsigned int i = 0; i < CONTENT_LEN; i++)
+                {
+                    if (xsxml_node_object->content[content_i][i] == '\n')
+                        fprintf(save_file_pointer, "%*s", indentation * ((*level) + 1), "");
+                    else
+                        fputc(xsxml_node_object->content[content_i][i], save_file_pointer);
+                }
+
+                fputc('\n', save_file_pointer);
+
+                content_i++;
 
                 for (unsigned int count = 0; count < vertical_spacing; count++)
                 {
