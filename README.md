@@ -45,7 +45,7 @@ For example, consider the less-than (<) character:<br>
 
 <br>To know more about the functions (their input names and types, and their output types), 
 and to know about the library's structures and enumerations, refer to the 
-[**xsxml.h**](https://github.com/melwyncarlo/XS-XML/blob/main/xsxml.h) file.
+[**xsxml.h**](https://github.com/melwyncarlo/XS-XML/blob/main/src/xsxml.h) file.
 
 
 ## <br>Modes
