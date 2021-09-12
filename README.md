@@ -17,10 +17,10 @@
 
 
 ## Description
-**Xsxml** is a tiny, basic, single-file XML parser.
+**XS-XML is a tiny, basic, single-file, and portable XML parser.**
 
 
-Xsxml stands for *'Extra small XML'*.
+XS-XML stands for *'Extra small XML'*.
 
 It works fine with simple XML files written as per 
 the standards of *version 1.0* and encoding of *UTF-8*.
