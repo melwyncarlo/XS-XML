@@ -4,11 +4,15 @@
 
 | Sr. No. | File name | File Description |
 | --- | --- | --- |
-| 1. | xsxml.c | The XS-XML source code file |
-| 2. | xsxml.h | The XS-XML header  file     |
-| 3. | test_1.c | The RAM  mode test file     |
-| 4. | test_2.c | The FILE mode test file     |
-| 5. | test_data.xml | The test data XML  file |
+| 1. | xsxml.c | The XS-XML C source code file |
+| 2. | xsxml.h | The XS-XML C header  file     |
+| 3. | xsxml.c | The XS-XML JavaScript source code file |
+| 4. | test_1.c | The RAM  mode XML parse test file in C |
+| 5. | test_2.c | The FILE mode XML parse test file in C |
+| 6. | test_3.c | The RAM mode XML compile test file in C |
+| 7. | test_4.html | The XML parse test file in JavaScript |
+| 8. | test_5.html | The XML compile test file in JavaScript |
+| 9. | test_data.xml | The test data XML  file |
 <br>
 
 
@@ -50,7 +54,10 @@ The XS-XML parser works in two modes:
 2. FILE mode
 
 
-The RAM and FILE mode examples have been provided in [test file 1](https://github.com/melwyncarlo/XS-XML/blob/main/test_1.c) and [test file 2](https://github.com/melwyncarlo/XS-XML/blob/main/test_2.c) respectively.
+The JavaScript version operates equivalently to the C version's RAM mode; it uses objects, containing references of each other.
+Web browsers do allow direct access to the computer's file system for security reasons; that makes the FILE mode redundant.
+
+Various examples have been provided in test files 1, 2, 3, 4, and 5.
 
 
 ### <br>RAM mode
