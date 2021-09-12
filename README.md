@@ -65,7 +65,7 @@ Various examples have been provided in test files 1, 2, 3, 4, and 5.
 In RAM mode, data is stored on the RAM as a cluster of pointers, 
 pointing either to data or to other pointers within the cluster.
 
-A parse operation requires the **input** of the XML file path (not just file name).
+A parse operation requires the **input** of the XML file path (not just the file name).
 
 A parse operation **returns** an Xsxml object which contains the following members:
 1. The parse operation's result code
