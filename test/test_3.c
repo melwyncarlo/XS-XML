@@ -39,26 +39,14 @@ Resultant data from file 'save_data.xml'
 
 <Human_Records Number_of_Humans="2">
     <Human>
-        <Name>
-            Pac Man
-        </Name>
-        <Phone>
-            000-111-222
-        </Phone>
-        <Email>
-            pac.man@human.org
-        </Email>
+        <Name>Pac Man</Name>
+        <Phone>000-111-222</Phone>
+        <Email>pac.man@human.org</Email>
     </Human>
     <Human>
-        <Name>
-            Polo Man
-        </Name>
-        <Phone>
-            333-444-555
-        </Phone>
-        <Email>
-            polo.man@human.org
-        </Email>
+        <Name>Polo Man</Name>
+        <Phone>333-444-555</Phone>
+        <Email>polo.man@human.org</Email>
     </Human>
 </Human_Records>
 */

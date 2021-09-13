@@ -1436,6 +1436,7 @@ static Xsxml_Private_Result *parse_operation( void **object,
                     XML_ATTRIBUTE_VALUE = 0;
                     XML_SINGLE_QUOTE    = 0;
                     XML_DOUBLE_QUOTE    = 0;
+                    XML_EQUAL           = 0;
                     continue;
                 }
 
@@ -2498,6 +2499,11 @@ static void compile_all_nodes( Xsxml_Private_Result *result_obj,
         }
     }
 
+    for (unsigned int count = 0; count <= vertical_spacing; count++)
+    {
+        fprintf(save_file_pointer, "\n");
+    }
+
     fprintf( save_file_pointer, 
              "%*s<%s", 
              indentation * (*level), "", 
@@ -2645,14 +2651,7 @@ static void compile_all_nodes( Xsxml_Private_Result *result_obj,
                  xsxml_node_object->attribute_value[j]);
     }
 
-    fprintf(save_file_pointer, ">\n");
-
-    for (unsigned int count = 0; count < vertical_spacing; count++)
-    {
-        fprintf(save_file_pointer, "\n");
-    }
-
-    unsigned int content_i = 0;
+    fprintf(save_file_pointer, ">");
 
     const unsigned int n_contents = xsxml_node_object->number_of_contents;
 
@@ -2836,28 +2835,46 @@ static void compile_all_nodes( Xsxml_Private_Result *result_obj,
         }
     }
 
+    unsigned int content_i = 0;
+
+    int last_element_was_tag;
+
     if (n_contents > 0)
     {
-        fprintf(save_file_pointer, "%*s", indentation * ((*level) + 1), "");
-
         const size_t CONTENT_LEN = strlen(xsxml_node_object->content[content_i]);
+
+        int was_space = 0;
 
         for (unsigned int i = 0; i < CONTENT_LEN; i++)
         {
-            if (xsxml_node_object->content[content_i][i] == '\n')
-                fprintf(save_file_pointer, "%*s", indentation * ((*level) + 1), "");
-            else
-                fputc(xsxml_node_object->content[content_i][i], save_file_pointer);
-        }
+            if ((xsxml_node_object->content[content_i][i] ==  ' ') 
+            ||  (xsxml_node_object->content[content_i][i] == '\r') 
+            ||  (xsxml_node_object->content[content_i][i] == '\n') 
+            ||  (xsxml_node_object->content[content_i][i] == '\t') 
+            ||  (xsxml_node_object->content[content_i][i] == '\v') 
+            ||  (xsxml_node_object->content[content_i][i] == '\f'))
+            {
+                if (was_space) continue;
 
-        fputc('\n', save_file_pointer);
+                was_space = 1;
+
+                fputc(' ', save_file_pointer);
+            }
+            else
+            {
+                was_space = 0;
+
+                fputc(xsxml_node_object->content[content_i][i], save_file_pointer);
+            }
+        }
 
         content_i++;
 
-        for (unsigned int count = 0; count < vertical_spacing; count++)
-        {
-            fprintf(save_file_pointer, "\n");
-        }
+        last_element_was_tag = 0;
+    }
+    else /* if (n_contents == 0) */
+    {
+        last_element_was_tag = 1;
     }
 
     if (xsxml_node_object->descendant != NULL)
@@ -2877,48 +2894,80 @@ static void compile_all_nodes( Xsxml_Private_Result *result_obj,
 
             if (result_obj->result_code != XSXML_RESULT_SUCCESS) return;
 
-            if (n_contents > 1)
+            if (content_i < n_contents)
             {
-                fprintf(save_file_pointer, "%*s", indentation * ((*level) + 1), "");
-
                 const size_t CONTENT_LEN = strlen(xsxml_node_object->content[content_i]);
+
+                int was_space = 0;
 
                 for (unsigned int i = 0; i < CONTENT_LEN; i++)
                 {
-                    if (xsxml_node_object->content[content_i][i] == '\n')
-                        fprintf(save_file_pointer, "%*s", indentation * ((*level) + 1), "");
-                    else
-                        fputc(xsxml_node_object->content[content_i][i], save_file_pointer);
-                }
+                    if ((xsxml_node_object->content[content_i][i] ==  ' ') 
+                    ||  (xsxml_node_object->content[content_i][i] == '\r') 
+                    ||  (xsxml_node_object->content[content_i][i] == '\n') 
+                    ||  (xsxml_node_object->content[content_i][i] == '\t') 
+                    ||  (xsxml_node_object->content[content_i][i] == '\v') 
+                    ||  (xsxml_node_object->content[content_i][i] == '\f'))
+                    {
+                        if (was_space) continue;
 
-                fputc('\n', save_file_pointer);
+                        was_space = 1;
+
+                        fputc(' ', save_file_pointer);
+                    }
+                    else
+                    {
+                        was_space = 0;
+
+                        fputc(xsxml_node_object->content[content_i][i], save_file_pointer);
+                    }
+                }
 
                 content_i++;
 
-                for (unsigned int count = 0; count < vertical_spacing; count++)
-                {
-                    fprintf(save_file_pointer, "\n");
-                }
+                last_element_was_tag = 0;
+            }
+            else /* if (content_i == n_contents) */
+            {
+                last_element_was_tag = 1;
             }
 
             xsxml_sub_node_object = xsxml_sub_node_object->next_sibling;
         }
 
         (*level)--;
+
+        if (last_element_was_tag)
+        {
+            for (unsigned int count = 0; count <= vertical_spacing; count++)
+            {
+                fprintf(save_file_pointer, "\n");
+            }
+
+            fprintf( save_file_pointer, "%*s", indentation * (*level), "");
+        }
+
+        fprintf( save_file_pointer, 
+                 "</%s",  
+                 xsxml_node_object->node_name);
     }
-
-    fprintf( save_file_pointer, 
-             "%*s",  
-             indentation * (*level), "");
-
-    fprintf( save_file_pointer, 
-             "</%s>\n",  
-             xsxml_node_object->node_name);
-
-    for (unsigned int count = 0; count < vertical_spacing; count++)
+    else
     {
-        fprintf(save_file_pointer, "\n");
+        if (n_contents > 0)
+        {
+            fprintf( save_file_pointer, 
+                     "</%s",  
+                     xsxml_node_object->node_name);
+        }
+        else
+        {
+            fseek(save_file_pointer, SEEK_CUR, -1);
+
+            fputc('/', save_file_pointer);
+        }
     }
+
+    fputc('>', save_file_pointer);
 }
 
 
@@ -3028,12 +3077,9 @@ void xsxml_compile( Xsxml *xsxml_object,
         return;
     }
 
-    fprintf(save_file_pointer, "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n\n");
+    fprintf(save_file_pointer, "<?xml version=\"1.0\" encoding=\"UTF-8\"?>");
 
-    for (unsigned int count = 0; count < vertical_spacing; count++)
-    {
-        fprintf(save_file_pointer, "\n");
-    }
+    if (vertical_spacing == 0) fputc('\n', save_file_pointer);
 
     unsigned int level = 0;
 
@@ -3052,7 +3098,7 @@ void xsxml_compile( Xsxml *xsxml_object,
 
     if (private_result.result_code == XSXML_RESULT_SUCCESS)
     {
-        fprintf(save_file_pointer, "\n");
+        fprintf(save_file_pointer, "\n\n");
 
         fclose(save_file_pointer);
 

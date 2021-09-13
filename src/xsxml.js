@@ -145,7 +145,7 @@ function parse_cer(word_object)
 
     for (var i = 0; i < 5; i++)
     {
-        if (word_object.character_entry_reference.localeCompare(BASE_ENTITY_REFERENCES) == 0)
+        if (word_object.character_entry_reference.localeCompare(BASE_ENTITY_REFERENCES[0][i]) == 0)
         {
             word_object.character_entry_reference = BASE_ENTITY_REFERENCES[1][i];
             return 1;
@@ -223,15 +223,49 @@ function parse_cer(word_object)
 }
 
 
+function xsxml_unset_node(xsxml_node)
+{
+    let sub_node = xsxml_node.descendant;
+
+    if (sub_node != null && sub_node != undefined)
+    {
+        xsxml_unset_node(sub_node);
+
+        delete xsxml_node.ancestor;
+        delete xsxml_node.descendant;
+        delete xsxml_node.next_sibling;
+        delete xsxml_node.previous_sibling;
+
+        delete xsxml_node.depth;
+        delete xsxml_node.number_of_contents;
+        delete xsxml_node.number_of_attributes;
+
+        delete xsxml_node.node_name;
+        delete xsxml_node.content;
+        delete xsxml_node.attribute_name;
+        delete xsxml_node.attribute_value;
+
+        sub_node = null;
+
+        sub_node = sub_node.next_sibling;
+    }
+}
+
+
 function xsxml_unset(xsxml_object)
 {
     xsxml_object.result          = null;
     xsxml_object.result_message  = null;
     xsxml_object.number_of_nodes = null;
-    xsxml_object.node            = null;
 
     delete xsxml_object.result;
     delete xsxml_object.result_message;
+
+    for (let i = 0; i < xsxml_object.number_of_nodes; i++)
+    {
+        xsxml_unset_node(xsxml_object.node[i]);
+    }
+
     delete xsxml_object.number_of_nodes;
     delete xsxml_object.node;
 
@@ -391,9 +425,12 @@ async function xsxml_parse(input_file)
     var node_level = 0;                 /* Current hierarchical depth      */
 
 
-    var word_object = { word : '', word_len : 0 };
-
-    var character_entry_reference = '';
+    var word_object = 
+    {
+        word : '', 
+        word_len : 0, 
+        character_entry_reference : '' 
+    };
 
 
     for (var i = 0; i < input_file.size; i++)
@@ -693,7 +730,7 @@ async function xsxml_parse(input_file)
                     {
                         cer_i = 0;
 
-                        character_entry_reference = '&';
+                        word_object.character_entry_reference = '';
 
                         XML_AMPERSAND = 1;
 
@@ -736,7 +773,7 @@ async function xsxml_parse(input_file)
                         return xsxml_object;
                     }
 
-                    character_entry_reference += file_data_character;
+                    word_object.character_entry_reference += file_data_character;
                     cer_i++;
                     continue;
                 }
@@ -769,6 +806,7 @@ async function xsxml_parse(input_file)
                     XML_ATTRIBUTE_VALUE = 0;
                     XML_SINGLE_QUOTE    = 0;
                     XML_DOUBLE_QUOTE    = 0;
+                    XML_EQUAL           = 0;
                     continue;
                 }
 
@@ -1101,7 +1139,7 @@ async function xsxml_parse(input_file)
             {
                 cer_i = 0;
 
-                character_entry_reference = '&';
+                word_object.character_entry_reference = '';
 
                 XML_AMPERSAND = 1;
 
@@ -1146,7 +1184,7 @@ async function xsxml_parse(input_file)
                 return xsxml_object;
             }
 
-            character_entry_reference += file_data_character;
+            word_object.character_entry_reference += file_data_character;
             cer_i++;
             continue;
         }
@@ -1400,6 +1438,8 @@ function compile_all_nodes( xsxml_object,
         }
     }
 
+    save_file_object.xml_data += '\n' + '\n'.repeat(vertical_spacing);
+
     save_file_object.xml_data += ' '.repeat(indentation * save_file_object.level);
 
     save_file_object.xml_data += '<' + xsxml_node_object.node_name;
@@ -1497,7 +1537,7 @@ function compile_all_nodes( xsxml_object,
             }
             else /* if (ret_1 != -1) */
             {
-                temp_string = temp_string.slice(ret_1, -1);
+                temp_string = temp_string.slice(ret_1);
 
                 const ret_2 = temp_string.indexOf(';');
 
@@ -1530,7 +1570,7 @@ function compile_all_nodes( xsxml_object,
                     }
                 }
 
-                temp_string = temp_string.slice(ret_2, -1);
+                temp_string = temp_string.slice(ret_2);
             }
         }
 
@@ -1539,9 +1579,7 @@ function compile_all_nodes( xsxml_object,
         save_file_object.xml_data += '=\"' + xsxml_node_object.attribute_value[j] + '\"';
     }
 
-    save_file_object.xml_data += '>\n' + '\n'.repeat(vertical_spacing);
-
-    var content_i = 0;
+    save_file_object.xml_data += '>';
 
     const n_contents = xsxml_node_object.number_of_contents;
 
@@ -1570,7 +1608,7 @@ function compile_all_nodes( xsxml_object,
                 }
                 else /* if (ret_1 != -1) */
                 {
-                    temp_string = temp_string.slice(ret_1, -1);
+                    temp_string = temp_string.slice(ret_1);
 
                     const ret_2 = temp_string.indexOf(']]>');
 
@@ -1595,7 +1633,7 @@ function compile_all_nodes( xsxml_object,
 
                         pos_prefix_cumulative += ret_2;
 
-                        temp_string = temp_string.slice(ret_2, -1);
+                        temp_string = temp_string.slice(ret_2);
                     }
                 }
             }
@@ -1612,7 +1650,7 @@ function compile_all_nodes( xsxml_object,
                 }
                 else /* if (ret_1 != -1) */
                 {
-                    temp_string = temp_string.slice(ret_1, -1);
+                    temp_string = temp_string.slice(ret_1);
 
                     var char_is_valid = 0;
 
@@ -1650,7 +1688,7 @@ function compile_all_nodes( xsxml_object,
                 }
                 else /* if (ret_1 != -1) */
                 {
-                    temp_string = temp_string.slice(ret_1, -1);
+                    temp_string = temp_string.slice(ret_1);
 
                     var char_is_valid = 0;
 
@@ -1680,7 +1718,7 @@ function compile_all_nodes( xsxml_object,
                         }
                         else /* if (ret_2 != -1) */
                         {
-                            temp_string = temp_string.slice(ret_2, -1);
+                            temp_string = temp_string.slice(ret_2);
 
                             var cer_data_object = 
                             {
@@ -1704,21 +1742,32 @@ function compile_all_nodes( xsxml_object,
         }
     }
 
+    var content_i = 0;
+
+    var last_element_was_tag;
+
     if (n_contents > 0)
     {
-        save_file_object.xml_data += ' '.repeat(indentation * (save_file_object.level + 1));
+        xsxml_node_object.content[content_i].replaceAll('\r', ' ');
+        xsxml_node_object.content[content_i].replaceAll('\n', ' ');
+        xsxml_node_object.content[content_i].replaceAll('\t', ' ');
+        xsxml_node_object.content[content_i].replaceAll('\v', ' ');
+        xsxml_node_object.content[content_i].replaceAll('\f', ' ');
 
-        save_file_object.xml_data += 
-        xsxml_node_object.content[content_i].replaceAll( '\n', 
-                                                         '\n' + 
-                                                         ' '.repeat(    indentation 
-                                                                     * (save_file_object.level + 1)
-                                                                   )
-                                                       ) + '\n';
+        while (xsxml_node_object.content[content_i].indexOf('  ') != -1)
+        {
+            xsxml_node_object.content[content_i].replaceAll('  ', ' ');
+        }
 
-        save_file_object.xml_data += '\n'.repeat(vertical_spacing);
+        save_file_object.xml_data += xsxml_node_object.content[content_i];
 
         content_i++;
+
+        last_element_was_tag = 0;
+    }
+    else /* if (n_contents == 0) */
+    {
+        last_element_was_tag = 1;
     }
 
     if (xsxml_node_object.descendant != null && xsxml_node_object.descendant != undefined)
@@ -1740,8 +1789,9 @@ function compile_all_nodes( xsxml_object,
                 return;
             }
 
-            if (n_contents > 1)
+            if (content_i < n_contents)
             {
+                /*
                 save_file_object.xml_data += ' '.repeat(indentation * (save_file_object.level + 1));
 
                 save_file_object.xml_data += 
@@ -1753,21 +1803,58 @@ function compile_all_nodes( xsxml_object,
                                                                ) + '\n';
 
                 save_file_object.xml_data += '\n'.repeat(vertical_spacing);
+                */
+
+                xsxml_node_object.content[content_i].replaceAll('\r', ' ');
+                xsxml_node_object.content[content_i].replaceAll('\n', ' ');
+                xsxml_node_object.content[content_i].replaceAll('\t', ' ');
+                xsxml_node_object.content[content_i].replaceAll('\v', ' ');
+                xsxml_node_object.content[content_i].replaceAll('\f', ' ');
+
+                while (xsxml_node_object.content[content_i].indexOf('  ') != -1)
+                {
+                    xsxml_node_object.content[content_i].replaceAll('  ', ' ');
+                }
+
+                save_file_object.xml_data += xsxml_node_object.content[content_i];
 
                 content_i++;
+
+                last_element_was_tag = 0;
+            }
+            else /* if (content_i == n_contents) */
+            {
+                last_element_was_tag = 1;
             }
 
             xsxml_sub_node_object = xsxml_sub_node_object.next_sibling;
         }
 
         save_file_object.level--;
+
+        if (last_element_was_tag)
+        {
+           save_file_object.xml_data += '\n' + '\n'.repeat(vertical_spacing);
+
+           save_file_object.xml_data += ' '.repeat(indentation * save_file_object.level);
+        }
+
+        save_file_object.xml_data += '</' + xsxml_node_object.node_name;
+    }
+    else
+    {
+        if (n_contents > 0)
+        {
+            save_file_object.xml_data += '</' + xsxml_node_object.node_name;
+        }
+        else
+        {
+            save_file_object.xml_data = save_file_object.xml_data.slice(0, -1);
+            save_file_object.xml_data += '/';
+        }
     }
 
-    save_file_object.xml_data += ' '.repeat(indentation * save_file_object.level);
-
-    save_file_object.xml_data += '</' + xsxml_node_object.node_name;
-
-    save_file_object.xml_data += '>\n' + '\n'.repeat(vertical_spacing);
+    save_file_object.xml_data += '>';
 }
 
 
@@ -1819,9 +1906,12 @@ function xsxml_compile( xsxml_object,
 
     var save_file_object = { xml_data : '', level : 0 };
 
-    save_file_object.xml_data = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n\n";
+    save_file_object.xml_data = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>";
 
-    save_file_object.xml_data += '\n'.repeat(vertical_spacing);
+    if (vertical_spacing == 0)
+    {
+        save_file_object.xml_data += '\n';
+    }
 
     xsxml_object.result = Xsxml_Result.XSXML_RESULT_SUCCESS;
 
@@ -1836,7 +1926,7 @@ function xsxml_compile( xsxml_object,
 
     if (xsxml_object.result == Xsxml_Result.XSXML_RESULT_SUCCESS)
     {
-        save_file_object.xml_data += '\n';
+        save_file_object.xml_data += '\n\n';
 
         return save_file_object.xml_data;
     }
