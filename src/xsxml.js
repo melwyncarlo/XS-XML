@@ -75,8 +75,17 @@ const Xsxml_Result =
 
 const Xsxml_Direction = 
 {
-   XSXML_DIRECTION_FORWARD  :  1, 
-   XSXML_DIRECTION_BACKWARD : -1
+    XSXML_DIRECTION_FORWARD  :  1, 
+    XSXML_DIRECTION_BACKWARD : -1
+};
+
+
+const Xsxml_Non_Alnum_Chars_Conversion = 
+{
+    XSXML_NO_CONVERSION               : 0, 
+    XSXML_CER_DECIMAL_CONVERSION      : 1, 
+    XSXML_CER_HEXA_DECIMAL_CONVERSION : 2, 
+    XSXML_CDATA_CONVERSION            : 3
 };
 
 
@@ -628,6 +637,16 @@ async function xsxml_parse(input_file)
 
                 if (word_object.word.substr(word_object.word_len - 1, 1) == ' ')
                     word_object.word = word_object.word.substr(0, word_object.word_len - 1);
+
+                if (word_object.word.indexOf('<![CDATA[') != -1)
+                {
+                    xsxml_object.result = Xsxml_Result.XSXML_RESULT_XML_FAILURE;
+
+                    xsxml_object.result_message = 
+                    "Nested CDATA is not allowed.";
+
+                    return xsxml_object;
+                }
 
                 parse_sub_operation_ram_mode( xsxml_object, 
                                               Xsxml_Parse_Mode.XSXML_PCDATA_CONTENT, 
@@ -1372,11 +1391,85 @@ function xsxml_occurrence( xsxml_object,
 }
 
 
+function write_content_to_file(old_content, conversion_mode)
+{
+    var new_content = old_content;
+
+    new_content = new_content.replaceAll('\r', ' ');
+    new_content = new_content.replaceAll('\n', ' ');
+    new_content = new_content.replaceAll('\t', ' ');
+    new_content = new_content.replaceAll('\v', ' ');
+    new_content = new_content.replaceAll('\f', ' ');
+
+    while (new_content.indexOf('  ') != -1)
+    {
+        new_content = new_content.replaceAll('  ', ' ');
+    }
+
+    if (conversion_mode != Xsxml_Non_Alnum_Chars_Conversion.XSXML_CER_DECIMAL_CONVERSION 
+    &&  conversion_mode != Xsxml_Non_Alnum_Chars_Conversion.XSXML_CER_HEXA_DECIMAL_CONVERSION 
+    &&  conversion_mode != Xsxml_Non_Alnum_Chars_Conversion.XSXML_CDATA_CONVERSION)
+    {
+        return new_content;
+    }
+
+    const CONTENT_LEN = new_content.length;
+
+    var cdata_value = '';
+
+    var cdata_len = 0;
+
+    var newer_content = '';
+
+    for (var i = 0; i < CONTENT_LEN; i++)
+    {
+        var content_character_i = new_content.charAt(i);
+
+        if ((/[a-zA-Z0-9 ]/).test(content_character_i))
+        {
+            if (conversion_mode == Xsxml_Non_Alnum_Chars_Conversion.XSXML_CDATA_CONVERSION)
+            {
+                if (cdata_len > 0)
+                {
+                    cdata_len = 0;
+
+                    newer_content += '<![CDATA[' + cdata_value + ']]>';
+
+                    cdata_value = '';
+                }
+            }
+
+            newer_content += content_character_i;
+
+            continue;
+        }
+
+        if (conversion_mode == Xsxml_Non_Alnum_Chars_Conversion.XSXML_CER_DECIMAL_CONVERSION)
+        {
+            newer_content += '&#' + content_character_i.charCodeAt(0) + ';';
+        }
+        else if (conversion_mode == Xsxml_Non_Alnum_Chars_Conversion.XSXML_CER_HEXA_DECIMAL_CONVERSION)
+        {
+            newer_content += '&#x' + content_character_i.charCodeAt(0).toString(16).toLocaleUpperCase() + ';';
+        }
+        else if (conversion_mode == Xsxml_Non_Alnum_Chars_Conversion.XSXML_CDATA_CONVERSION)
+        {
+            cdata_len++;
+
+            cdata_value += content_character_i;
+        }
+    }
+
+    return newer_content;
+}
+
+
 function compile_all_nodes( xsxml_object, 
                             save_file_object, 
                             xsxml_node_object, 
                             indentation, 
-                            vertical_spacing)
+                            vertical_spacing, 
+                            conversion_mode)
 {
     var temp_string = '';
 
@@ -1623,6 +1716,18 @@ function compile_all_nodes( xsxml_object,
                     }
                     else /* if (ret_2 != -1) */
                     {
+                        const ret_3 = temp_string.indexOf('<![CDATA[');
+
+                        if (ret_3 <= ret_2)
+                        {
+                            xsxml_object.result = Xsxml_Result.XSXML_RESULT_XML_FAILURE;
+
+                            xsxml_object.result_message = 
+                            "Nested CDATA is not allowed.";
+
+                            return;
+                        }
+
                         cdata_tags_n++;
 
                         cdata_tag_pos_start [cdata_tags_n - 1] = 
@@ -1748,18 +1853,8 @@ function compile_all_nodes( xsxml_object,
 
     if (n_contents > 0)
     {
-        xsxml_node_object.content[content_i].replaceAll('\r', ' ');
-        xsxml_node_object.content[content_i].replaceAll('\n', ' ');
-        xsxml_node_object.content[content_i].replaceAll('\t', ' ');
-        xsxml_node_object.content[content_i].replaceAll('\v', ' ');
-        xsxml_node_object.content[content_i].replaceAll('\f', ' ');
-
-        while (xsxml_node_object.content[content_i].indexOf('  ') != -1)
-        {
-            xsxml_node_object.content[content_i].replaceAll('  ', ' ');
-        }
-
-        save_file_object.xml_data += xsxml_node_object.content[content_i];
+        save_file_object.xml_data += 
+        write_content_to_file(xsxml_node_object.content[content_i], conversion_mode);
 
         content_i++;
 
@@ -1782,7 +1877,8 @@ function compile_all_nodes( xsxml_object,
                                save_file_object, 
                                xsxml_sub_node_object, 
                                indentation, 
-                               vertical_spacing);
+                               vertical_spacing, 
+                               conversion_mode);
 
             if (xsxml_object.result != Xsxml_Result.XSXML_RESULT_SUCCESS)
             {
@@ -1805,18 +1901,8 @@ function compile_all_nodes( xsxml_object,
                 save_file_object.xml_data += '\n'.repeat(vertical_spacing);
                 */
 
-                xsxml_node_object.content[content_i].replaceAll('\r', ' ');
-                xsxml_node_object.content[content_i].replaceAll('\n', ' ');
-                xsxml_node_object.content[content_i].replaceAll('\t', ' ');
-                xsxml_node_object.content[content_i].replaceAll('\v', ' ');
-                xsxml_node_object.content[content_i].replaceAll('\f', ' ');
-
-                while (xsxml_node_object.content[content_i].indexOf('  ') != -1)
-                {
-                    xsxml_node_object.content[content_i].replaceAll('  ', ' ');
-                }
-
-                save_file_object.xml_data += xsxml_node_object.content[content_i];
+                save_file_object.xml_data += 
+                write_content_to_file(xsxml_node_object.content[content_i], conversion_mode);
 
                 content_i++;
 
@@ -1860,7 +1946,8 @@ function compile_all_nodes( xsxml_object,
 
 function xsxml_compile( xsxml_object, 
                         indentation, 
-                        vertical_spacing)
+                        vertical_spacing, 
+                        conversion_mode)
 {
     if (indentation > MAX_INDENTATION)
     {
@@ -1922,7 +2009,8 @@ function xsxml_compile( xsxml_object,
                        save_file_object, 
                        xsxml_object.node[0], 
                        indentation, 
-                       vertical_spacing);
+                       vertical_spacing, 
+                       conversion_mode);
 
     if (xsxml_object.result == Xsxml_Result.XSXML_RESULT_SUCCESS)
     {

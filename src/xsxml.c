@@ -1212,6 +1212,16 @@ static Xsxml_Private_Result *parse_operation( void **object,
 
                 word [word_len] = 0;
 
+                if (strstr(word, "<![CDATA[") != NULL)
+                {
+                    result_obj->result_code = XSXML_RESULT_XML_FAILURE;
+
+                    sprintf( &result_obj->result_message[0], 
+                             "Nested CDATA is not allowed.");
+
+                    return result_obj;
+                }
+
                 if (access_mode == XSXML_RAM_MODE)
                 {
                     parse_sub_operation_ram_mode( (Xsxml **) object, 
@@ -2432,11 +2442,136 @@ size_t *xsxml_files_occurrence( Xsxml_Files *xsxml_files_object,
 }
 
 
+static void decimal_to_hexa_decimal(int decimal_number, char output_hexa_decimal_number[10])
+{
+    int i = 0;
+
+    char hexa_decimal_number[10];
+
+    while (decimal_number != 0)
+    {
+        int temp_number = 0;
+
+        temp_number = decimal_number % 16;
+
+        /* If the hexa-decimal character is a numerical digit. */
+        if (temp_number < 10)
+        {
+            hexa_decimal_number[i++] = temp_number + 48;
+        }
+        /* If the hexa-decimal character is an alphabetic character. */
+        else
+        {
+            hexa_decimal_number[i++] = temp_number + 55;
+        }
+
+        decimal_number /= 16;
+    }
+
+    for (int j = 0; j < i; j++)
+    {
+        output_hexa_decimal_number [j] = 
+               hexa_decimal_number [i - j - 1];
+    }
+
+    output_hexa_decimal_number [i] = 0;
+}
+
+
+static void write_content_to_file( FILE *save_file_pointer, 
+                                   char *content, 
+                                   Xsxml_Non_Alnum_Chars_Conversion conversion_mode)
+{
+    const size_t CONTENT_LEN = strlen(content);
+
+    char *cdata_value = (char *) malloc(1);
+
+    int cdata_len = 0;
+
+    int was_space = 0;
+
+    for (unsigned int i = 0; i < CONTENT_LEN; i++)
+    {
+        if ((content[i] ==  ' ') 
+        ||  (content[i] == '\r') 
+        ||  (content[i] == '\n') 
+        ||  (content[i] == '\t') 
+        ||  (content[i] == '\v') 
+        ||  (content[i] == '\f'))
+        {
+            if (was_space) continue;
+
+            was_space = 1;
+
+            fputc(' ', save_file_pointer);
+        }
+        else
+        {
+            was_space = 0;
+
+            if (isalnum(content[i])
+            || ((conversion_mode != XSXML_CER_DECIMAL_CONVERSION) 
+            &&  (conversion_mode != XSXML_CER_HEXA_DECIMAL_CONVERSION) 
+            &&  (conversion_mode != XSXML_CDATA_CONVERSION)))
+            {
+                if (conversion_mode == XSXML_CDATA_CONVERSION)
+                {
+                    if (cdata_len)
+                    {
+                        cdata_value = (char *) realloc(cdata_value, cdata_len + 1);
+
+                        cdata_value[cdata_len] = 0;
+
+                        cdata_len = 0;
+
+                        fprintf( save_file_pointer, 
+                                 "<![CDATA[%s]]>", 
+                                 cdata_value);
+                    }
+                }
+
+                fputc(content[i], save_file_pointer);
+
+                continue;
+            }
+
+            if (conversion_mode == XSXML_CER_DECIMAL_CONVERSION)
+            {
+                fprintf( save_file_pointer, 
+                         "&#%d;", 
+                         (int) content[i]);
+            }
+            else if (conversion_mode == XSXML_CER_HEXA_DECIMAL_CONVERSION)
+            {
+                char hexa_decimal_number[10];
+
+                decimal_to_hexa_decimal( (int) content[i], 
+                                         hexa_decimal_number);
+
+                fprintf( save_file_pointer, 
+                         "&#x%s;", 
+                         hexa_decimal_number);
+            }
+            else if (conversion_mode == XSXML_CDATA_CONVERSION)
+            {
+                cdata_len++;
+
+                /* The plus one (+1) is for the null terminator. */
+                cdata_value = (char *) realloc(cdata_value, cdata_len);
+
+                cdata_value[cdata_len - 1] = content[i];
+            }
+        }
+    }
+}
+
+
 static void compile_all_nodes( Xsxml_Private_Result *result_obj, 
                                Xsxml_Nodes *xsxml_node_object, 
                                FILE *save_file_pointer, 
                                unsigned int indentation, 
                                unsigned int vertical_spacing, 
+                               Xsxml_Non_Alnum_Chars_Conversion conversion_mode, 
                                unsigned int *level)
 {
     /* Validating tag. */
@@ -2661,8 +2796,6 @@ static void compile_all_nodes( Xsxml_Private_Result *result_obj,
 
         for (unsigned int j = 0; j < n_contents; j++)
         {
-            // <![CDATA[ ]]>
-
             size_t ret_0 = 0;
 
             int cdata_tags_n = 0;
@@ -2695,6 +2828,23 @@ static void compile_all_nodes( Xsxml_Private_Result *result_obj,
                     }
                     else /* if (ret_2 != NULL) */
                     {
+                        const char *ret_3 = strstr( &xsxml_node_object->content
+                                                        [j][ret_1 - xsxml_node_object->content[j]], 
+                                                    "<![CDATA[");
+
+                        if (ret_3 != NULL)
+                        {
+                            if ((ret_3 - xsxml_node_object->content[j]) <= (ret_2 - xsxml_node_object->content[j]))
+                            {
+                                result_obj->result_code = XSXML_RESULT_XML_FAILURE;
+
+                                sprintf( &result_obj->result_message[0], 
+                                         "Nested CDATA is not allowed.");
+
+                                return;
+                            }
+                        }
+
                         cdata_tags_n++;
 
                         cdata_tag_pos_start = 
@@ -2841,32 +2991,9 @@ static void compile_all_nodes( Xsxml_Private_Result *result_obj,
 
     if (n_contents > 0)
     {
-        const size_t CONTENT_LEN = strlen(xsxml_node_object->content[content_i]);
-
-        int was_space = 0;
-
-        for (unsigned int i = 0; i < CONTENT_LEN; i++)
-        {
-            if ((xsxml_node_object->content[content_i][i] ==  ' ') 
-            ||  (xsxml_node_object->content[content_i][i] == '\r') 
-            ||  (xsxml_node_object->content[content_i][i] == '\n') 
-            ||  (xsxml_node_object->content[content_i][i] == '\t') 
-            ||  (xsxml_node_object->content[content_i][i] == '\v') 
-            ||  (xsxml_node_object->content[content_i][i] == '\f'))
-            {
-                if (was_space) continue;
-
-                was_space = 1;
-
-                fputc(' ', save_file_pointer);
-            }
-            else
-            {
-                was_space = 0;
-
-                fputc(xsxml_node_object->content[content_i][i], save_file_pointer);
-            }
-        }
+        write_content_to_file( save_file_pointer, 
+                               xsxml_node_object->content[content_i], 
+                               conversion_mode);
 
         content_i++;
 
@@ -2890,38 +3017,16 @@ static void compile_all_nodes( Xsxml_Private_Result *result_obj,
                                save_file_pointer, 
                                indentation, 
                                vertical_spacing, 
+                               conversion_mode, 
                                level);
 
             if (result_obj->result_code != XSXML_RESULT_SUCCESS) return;
 
             if (content_i < n_contents)
             {
-                const size_t CONTENT_LEN = strlen(xsxml_node_object->content[content_i]);
-
-                int was_space = 0;
-
-                for (unsigned int i = 0; i < CONTENT_LEN; i++)
-                {
-                    if ((xsxml_node_object->content[content_i][i] ==  ' ') 
-                    ||  (xsxml_node_object->content[content_i][i] == '\r') 
-                    ||  (xsxml_node_object->content[content_i][i] == '\n') 
-                    ||  (xsxml_node_object->content[content_i][i] == '\t') 
-                    ||  (xsxml_node_object->content[content_i][i] == '\v') 
-                    ||  (xsxml_node_object->content[content_i][i] == '\f'))
-                    {
-                        if (was_space) continue;
-
-                        was_space = 1;
-
-                        fputc(' ', save_file_pointer);
-                    }
-                    else
-                    {
-                        was_space = 0;
-
-                        fputc(xsxml_node_object->content[content_i][i], save_file_pointer);
-                    }
-                }
+                write_content_to_file( save_file_pointer, 
+                                       xsxml_node_object->content[content_i], 
+                                       conversion_mode);
 
                 content_i++;
 
@@ -2944,7 +3049,7 @@ static void compile_all_nodes( Xsxml_Private_Result *result_obj,
                 fprintf(save_file_pointer, "\n");
             }
 
-            fprintf( save_file_pointer, "%*s", indentation * (*level), "");
+            fprintf(save_file_pointer, "%*s", indentation * (*level), "");
         }
 
         fprintf( save_file_pointer, 
@@ -2975,7 +3080,8 @@ void xsxml_compile( Xsxml *xsxml_object,
                     const char *save_directory, 
                     const char *save_file_name, 
                     unsigned int indentation, 
-                    unsigned int vertical_spacing)
+                    unsigned int vertical_spacing, 
+                    Xsxml_Non_Alnum_Chars_Conversion conversion_mode)
 {
     if (xsxml_object->result_message == NULL)
     {
@@ -3094,6 +3200,7 @@ void xsxml_compile( Xsxml *xsxml_object,
                        save_file_pointer, 
                        indentation, 
                        vertical_spacing, 
+                       conversion_mode, 
                        &level);
 
     if (private_result.result_code == XSXML_RESULT_SUCCESS)

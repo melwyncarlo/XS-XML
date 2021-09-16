@@ -179,7 +179,8 @@ int main()
                    NULL, 
                    xml_file_name, 
                    4, 
-                   0);
+                   0, 
+                   XSXML_NO_CONVERSION);
 
 
     /* Outputting the result message and the compiled data. */

@@ -126,7 +126,7 @@ limitations under the License.
 
                 xsxml_object.node[4].ancestor         = xsxml_object.node[3];
 
-                var xml_data = xsxml_compile(xsxml_object, 4, 1);
+                var xml_data = xsxml_compile(xsxml_object, 4, 1, Xsxml_Non_Alnum_Chars_Conversion.XSXML_NO_CONVERSION);
 
                 alert(xsxml_object.result_message);
 

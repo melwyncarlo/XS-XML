@@ -66,10 +66,20 @@ typedef enum Xsxml_Result
 
 typedef enum Xsxml_Direction
 {
-   XSXML_DIRECTION_FORWARD  =  1, 
-   XSXML_DIRECTION_BACKWARD = -1
+    XSXML_DIRECTION_FORWARD  =  1, 
+    XSXML_DIRECTION_BACKWARD = -1
 
 } Xsxml_Direction;
+
+
+typedef enum Xsxml_Non_Alnum_Chars_Conversion
+{
+    XSXML_NO_CONVERSION               = 0, 
+    XSXML_CER_DECIMAL_CONVERSION      = 1, 
+    XSXML_CER_HEXA_DECIMAL_CONVERSION = 2, 
+    XSXML_CDATA_CONVERSION            = 3
+
+} Xsxml_Non_Alnum_Chars_Conversion;
 
 
 typedef struct Xsxml Xsxml;
@@ -134,7 +144,8 @@ extern void xsxml_compile( Xsxml *xsxml_object,
                            const char *save_directory, 
                            const char *save_file_name, 
                            unsigned int indentation, 
-                           unsigned int vertical_spacing);
+                           unsigned int vertical_spacing, 
+                           Xsxml_Non_Alnum_Chars_Conversion conversion_mode);
 
 extern void xsxml_unset(Xsxml **xsxml_object);
 
