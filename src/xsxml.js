@@ -1391,7 +1391,7 @@ function xsxml_occurrence( xsxml_object,
 }
 
 
-function write_content_to_file(old_content, conversion_mode)
+function write_content_to_file(old_content, content_conversion_mode)
 {
     var new_content = old_content;
 
@@ -1406,9 +1406,9 @@ function write_content_to_file(old_content, conversion_mode)
         new_content = new_content.replaceAll('  ', ' ');
     }
 
-    if (conversion_mode != Xsxml_Non_Alnum_Chars_Conversion.XSXML_CER_DECIMAL_CONVERSION 
-    &&  conversion_mode != Xsxml_Non_Alnum_Chars_Conversion.XSXML_CER_HEXA_DECIMAL_CONVERSION 
-    &&  conversion_mode != Xsxml_Non_Alnum_Chars_Conversion.XSXML_CDATA_CONVERSION)
+    if (content_conversion_mode != Xsxml_Non_Alnum_Chars_Conversion.XSXML_CER_DECIMAL_CONVERSION 
+    &&  content_conversion_mode != Xsxml_Non_Alnum_Chars_Conversion.XSXML_CER_HEXA_DECIMAL_CONVERSION 
+    &&  content_conversion_mode != Xsxml_Non_Alnum_Chars_Conversion.XSXML_CDATA_CONVERSION)
     {
         return new_content;
     }
@@ -1427,7 +1427,7 @@ function write_content_to_file(old_content, conversion_mode)
 
         if ((/[a-zA-Z0-9 ]/).test(content_character_i))
         {
-            if (conversion_mode == Xsxml_Non_Alnum_Chars_Conversion.XSXML_CDATA_CONVERSION)
+            if (content_conversion_mode == Xsxml_Non_Alnum_Chars_Conversion.XSXML_CDATA_CONVERSION)
             {
                 if (cdata_len > 0)
                 {
@@ -1444,15 +1444,15 @@ function write_content_to_file(old_content, conversion_mode)
             continue;
         }
 
-        if (conversion_mode == Xsxml_Non_Alnum_Chars_Conversion.XSXML_CER_DECIMAL_CONVERSION)
+        if (content_conversion_mode == Xsxml_Non_Alnum_Chars_Conversion.XSXML_CER_DECIMAL_CONVERSION)
         {
             newer_content += '&#' + content_character_i.charCodeAt(0) + ';';
         }
-        else if (conversion_mode == Xsxml_Non_Alnum_Chars_Conversion.XSXML_CER_HEXA_DECIMAL_CONVERSION)
+        else if (content_conversion_mode == Xsxml_Non_Alnum_Chars_Conversion.XSXML_CER_HEXA_DECIMAL_CONVERSION)
         {
             newer_content += '&#x' + content_character_i.charCodeAt(0).toString(16).toLocaleUpperCase() + ';';
         }
-        else if (conversion_mode == Xsxml_Non_Alnum_Chars_Conversion.XSXML_CDATA_CONVERSION)
+        else if (content_conversion_mode == Xsxml_Non_Alnum_Chars_Conversion.XSXML_CDATA_CONVERSION)
         {
             cdata_len++;
 
@@ -1469,7 +1469,7 @@ function compile_all_nodes( xsxml_object,
                             xsxml_node_object, 
                             indentation, 
                             vertical_spacing, 
-                            conversion_mode)
+                            content_conversion_mode)
 {
     var temp_string = '';
 
@@ -1771,12 +1771,15 @@ function compile_all_nodes( xsxml_object,
 
                     if (!char_is_valid)
                     {
-                        xsxml_object.result = Xsxml_Result.XSXML_RESULT_XML_FAILURE;
+                        if (content_conversion_mode == XSXML_NO_CONVERSION)
+                        {
+                            xsxml_object.result = Xsxml_Result.XSXML_RESULT_XML_FAILURE;
 
-                        xsxml_object.result_message = 
-                        "A tag's PCDATA may not contain the less-than (<) characters.";
+                            xsxml_object.result_message = 
+                            "A tag's PCDATA may not contain the less-than (<) characters.";
 
-                        return;
+                            return;
+                        }
                     }
                 }
             }
@@ -1813,13 +1816,16 @@ function compile_all_nodes( xsxml_object,
 
                         if (ret_2 == -1)
                         {
-                            xsxml_object.result = Xsxml_Result.XSXML_RESULT_XML_FAILURE;
+                            if (content_conversion_mode == XSXML_NO_CONVERSION)
+                            {
+                                xsxml_object.result = Xsxml_Result.XSXML_RESULT_XML_FAILURE;
 
-                            xsxml_object.result_message = 
-                            "A tag's PCDATA may contain the ampersand (&) " + 
-                            "characters only as character entity references.";
+                                xsxml_object.result_message = 
+                                "A tag's PCDATA may contain the ampersand (&) " + 
+                                "characters only as character entity references.";
 
-                            return;
+                                return;
+                            }
                         }
                         else /* if (ret_2 != -1) */
                         {
@@ -1832,13 +1838,16 @@ function compile_all_nodes( xsxml_object,
 
                             if (!parse_cer(cer_data_object))
                             {
-                                xsxml_object.result = Xsxml_Result.XSXML_RESULT_XML_FAILURE;
+                                if (content_conversion_mode == XSXML_NO_CONVERSION)
+                                {
+                                    xsxml_object.result = Xsxml_Result.XSXML_RESULT_XML_FAILURE;
 
-                                xsxml_object.result_message = 
-                                "A tag's PCDATA may contain the ampersand (&) "
-                                "characters only as character entity references.";
+                                    xsxml_object.result_message = 
+                                    "A tag's PCDATA may contain the ampersand (&) "
+                                    "characters only as character entity references.";
 
-                                return;
+                                    return;
+                                }
                             }
                         }
                     }
@@ -1854,7 +1863,7 @@ function compile_all_nodes( xsxml_object,
     if (n_contents > 0)
     {
         save_file_object.xml_data += 
-        write_content_to_file(xsxml_node_object.content[content_i], conversion_mode);
+        write_content_to_file(xsxml_node_object.content[content_i], content_conversion_mode);
 
         content_i++;
 
@@ -1878,7 +1887,7 @@ function compile_all_nodes( xsxml_object,
                                xsxml_sub_node_object, 
                                indentation, 
                                vertical_spacing, 
-                               conversion_mode);
+                               content_conversion_mode);
 
             if (xsxml_object.result != Xsxml_Result.XSXML_RESULT_SUCCESS)
             {
@@ -1902,7 +1911,7 @@ function compile_all_nodes( xsxml_object,
                 */
 
                 save_file_object.xml_data += 
-                write_content_to_file(xsxml_node_object.content[content_i], conversion_mode);
+                write_content_to_file(xsxml_node_object.content[content_i], content_conversion_mode);
 
                 content_i++;
 
@@ -1947,7 +1956,7 @@ function compile_all_nodes( xsxml_object,
 function xsxml_compile( xsxml_object, 
                         indentation, 
                         vertical_spacing, 
-                        conversion_mode)
+                        content_conversion_mode)
 {
     if (indentation > MAX_INDENTATION)
     {
@@ -2010,7 +2019,7 @@ function xsxml_compile( xsxml_object,
                        xsxml_object.node[0], 
                        indentation, 
                        vertical_spacing, 
-                       conversion_mode);
+                       content_conversion_mode);
 
     if (xsxml_object.result == Xsxml_Result.XSXML_RESULT_SUCCESS)
     {

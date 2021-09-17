@@ -2480,7 +2480,7 @@ static void decimal_to_hexa_decimal(int decimal_number, char output_hexa_decimal
 
 static void write_content_to_file( FILE *save_file_pointer, 
                                    char *content, 
-                                   Xsxml_Non_Alnum_Chars_Conversion conversion_mode)
+                                   Xsxml_Non_Alnum_Chars_Conversion content_conversion_mode)
 {
     const size_t CONTENT_LEN = strlen(content);
 
@@ -2510,11 +2510,11 @@ static void write_content_to_file( FILE *save_file_pointer,
             was_space = 0;
 
             if (isalnum(content[i])
-            || ((conversion_mode != XSXML_CER_DECIMAL_CONVERSION) 
-            &&  (conversion_mode != XSXML_CER_HEXA_DECIMAL_CONVERSION) 
-            &&  (conversion_mode != XSXML_CDATA_CONVERSION)))
+            || ((content_conversion_mode != XSXML_CER_DECIMAL_CONVERSION) 
+            &&  (content_conversion_mode != XSXML_CER_HEXA_DECIMAL_CONVERSION) 
+            &&  (content_conversion_mode != XSXML_CDATA_CONVERSION)))
             {
-                if (conversion_mode == XSXML_CDATA_CONVERSION)
+                if (content_conversion_mode == XSXML_CDATA_CONVERSION)
                 {
                     if (cdata_len)
                     {
@@ -2535,13 +2535,13 @@ static void write_content_to_file( FILE *save_file_pointer,
                 continue;
             }
 
-            if (conversion_mode == XSXML_CER_DECIMAL_CONVERSION)
+            if (content_conversion_mode == XSXML_CER_DECIMAL_CONVERSION)
             {
                 fprintf( save_file_pointer, 
                          "&#%d;", 
                          (int) content[i]);
             }
-            else if (conversion_mode == XSXML_CER_HEXA_DECIMAL_CONVERSION)
+            else if (content_conversion_mode == XSXML_CER_HEXA_DECIMAL_CONVERSION)
             {
                 char hexa_decimal_number[10];
 
@@ -2552,7 +2552,7 @@ static void write_content_to_file( FILE *save_file_pointer,
                          "&#x%s;", 
                          hexa_decimal_number);
             }
-            else if (conversion_mode == XSXML_CDATA_CONVERSION)
+            else if (content_conversion_mode == XSXML_CDATA_CONVERSION)
             {
                 cdata_len++;
 
@@ -2571,7 +2571,7 @@ static void compile_all_nodes( Xsxml_Private_Result *result_obj,
                                FILE *save_file_pointer, 
                                unsigned int indentation, 
                                unsigned int vertical_spacing, 
-                               Xsxml_Non_Alnum_Chars_Conversion conversion_mode, 
+                               Xsxml_Non_Alnum_Chars_Conversion content_conversion_mode, 
                                unsigned int *level)
 {
     /* Validating tag. */
@@ -2894,13 +2894,16 @@ static void compile_all_nodes( Xsxml_Private_Result *result_obj,
 
                     if (!char_is_valid)
                     {
-                        result_obj->result_code = XSXML_RESULT_XML_FAILURE;
+                        if (content_conversion_mode == XSXML_NO_CONVERSION)
+                        {
+                           result_obj->result_code = XSXML_RESULT_XML_FAILURE;
 
-                        sprintf( &result_obj->result_message[0], 
-                                 "A tag's PCDATA may not contain the "
-                                 "less-than (<) characters.");
+                           sprintf( &result_obj->result_message[0], 
+                                    "A tag's PCDATA may not contain the "
+                                    "less-than (<) characters.");
 
-                        return;
+                           return;
+                        }
                     }
                 }
 
@@ -2941,13 +2944,16 @@ static void compile_all_nodes( Xsxml_Private_Result *result_obj,
 
                         if (ret_2 == NULL)
                         {
-                            result_obj->result_code = XSXML_RESULT_XML_FAILURE;
+                            if (content_conversion_mode == XSXML_NO_CONVERSION)
+                            {
+                                result_obj->result_code = XSXML_RESULT_XML_FAILURE;
 
-                            sprintf( &result_obj->result_message[0], 
-                                     "A tag's PCDATA may contain the ampersand (&) "
-                                     "characters only as character entity references.");
+                                sprintf( &result_obj->result_message[0], 
+                                         "A tag's PCDATA may contain the ampersand (&) "
+                                         "characters only as character entity references.");
 
-                            return;
+                                return;
+                            }
                         }
                         else /* if (ret_2 != NULL) */
                         {
@@ -2962,13 +2968,16 @@ static void compile_all_nodes( Xsxml_Private_Result *result_obj,
                             {
                                 free(cer_data);
 
-                                result_obj->result_code = XSXML_RESULT_XML_FAILURE;
+                                if (content_conversion_mode == XSXML_NO_CONVERSION)
+                                {
+                                    result_obj->result_code = XSXML_RESULT_XML_FAILURE;
 
-                                sprintf( &result_obj->result_message[0], 
-                                         "A tag's PCDATA may contain the ampersand (&) "
-                                         "characters only as character entity references.");
+                                    sprintf( &result_obj->result_message[0], 
+                                             "A tag's PCDATA may contain the ampersand (&) "
+                                             "characters only as character entity references.");
 
-                                return;
+                                    return;
+                                }
                             }
 
                             free(cer_data);
@@ -2993,7 +3002,7 @@ static void compile_all_nodes( Xsxml_Private_Result *result_obj,
     {
         write_content_to_file( save_file_pointer, 
                                xsxml_node_object->content[content_i], 
-                               conversion_mode);
+                               content_conversion_mode);
 
         content_i++;
 
@@ -3017,7 +3026,7 @@ static void compile_all_nodes( Xsxml_Private_Result *result_obj,
                                save_file_pointer, 
                                indentation, 
                                vertical_spacing, 
-                               conversion_mode, 
+                               content_conversion_mode, 
                                level);
 
             if (result_obj->result_code != XSXML_RESULT_SUCCESS) return;
@@ -3026,7 +3035,7 @@ static void compile_all_nodes( Xsxml_Private_Result *result_obj,
             {
                 write_content_to_file( save_file_pointer, 
                                        xsxml_node_object->content[content_i], 
-                                       conversion_mode);
+                                       content_conversion_mode);
 
                 content_i++;
 
@@ -3081,7 +3090,7 @@ void xsxml_compile( Xsxml *xsxml_object,
                     const char *save_file_name, 
                     unsigned int indentation, 
                     unsigned int vertical_spacing, 
-                    Xsxml_Non_Alnum_Chars_Conversion conversion_mode)
+                    Xsxml_Non_Alnum_Chars_Conversion content_conversion_mode)
 {
     if (xsxml_object->result_message == NULL)
     {
@@ -3200,7 +3209,7 @@ void xsxml_compile( Xsxml *xsxml_object,
                        save_file_pointer, 
                        indentation, 
                        vertical_spacing, 
-                       conversion_mode, 
+                       content_conversion_mode, 
                        &level);
 
     if (private_result.result_code == XSXML_RESULT_SUCCESS)

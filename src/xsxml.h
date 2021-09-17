@@ -145,7 +145,7 @@ extern void xsxml_compile( Xsxml *xsxml_object,
                            const char *save_file_name, 
                            unsigned int indentation, 
                            unsigned int vertical_spacing, 
-                           Xsxml_Non_Alnum_Chars_Conversion conversion_mode);
+                           Xsxml_Non_Alnum_Chars_Conversion content_conversion_mode);
 
 extern void xsxml_unset(Xsxml **xsxml_object);
 
