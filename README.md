@@ -7,12 +7,12 @@
 | 1. | xsxml.c | The XS-XML C source code file |
 | 2. | xsxml.h | The XS-XML C header  file     |
 | 3. | xsxml.js | The XS-XML JavaScript source code file |
-| 4. | test_1.c | The RAM  mode XML parse test file in C |
-| 5. | test_2.c | The FILE mode XML parse test file in C |
-| 6. | test_3.c | The RAM mode XML compile test file in C |
-| 7. | test_4.html | The XML parse test file in JavaScript |
-| 8. | test_5.html | The XML compile test file in JavaScript |
-| 9. | test_data.xml | The test data XML  file |
+| 4. | test_1.c | The RAM  mode XML parse example test file in C |
+| 5. | test_2.c | The FILE mode XML parse example test file in C |
+| 6. | test_3.c | The RAM mode XML compile example test file in C |
+| 7. | test_4.html | The XML parse example test file in JavaScript |
+| 8. | test_5.html | The XML compile example test file in JavaScript |
+| 9. | test_data.xml | The example test XML data file |
 <br>
 
 
