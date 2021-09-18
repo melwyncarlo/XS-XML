@@ -1,4 +1,4 @@
-# XS-XML : An extra-small XML parser.
+# XS-XML : An extra-small XML parser and compiler.
 
 <br>
 
@@ -17,7 +17,7 @@
 
 
 ## Description
-**XS-XML is a tiny, basic, single-file, and portable XML parser.**
+**XS-XML is a tiny, basic, single-file, and portable XML parser and compiler.**
 
 
 XS-XML stands for *'Extra small XML'*.
