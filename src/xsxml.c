@@ -544,6 +544,10 @@ static int parse_sub_operation_ram_mode( Xsxml **xsxml_object,
                 &data[0], 
                 DATA_LEN);
 
+        (*xsxml_object)->node[n]->attribute_name = (char **) malloc(sizeof(char *));
+
+        (*xsxml_object)->node[n]->attribute_value = (char **) malloc(sizeof(char *));
+
         (*xsxml_object)->node[n]->content = (char **) malloc(sizeof(char *));
 
         (*xsxml_object)->node[n]->depth = node_level;
@@ -2000,6 +2004,8 @@ Xsxml *xsxml_parse(const char *input_file_path)
 
     fclose(file_pointer);
 
+    xsxml_object->result = private_result->result_code;
+
     if (private_result->result_code == XSXML_RESULT_SUCCESS)
     {
         sprintf( &xsxml_object->result_message[0], 
@@ -2153,6 +2159,8 @@ Xsxml_Files *xsxml_files_parse( const char *input_file_path,
     parse_operation((void **)&xsxml_files_object, XSXML_FILE_MODE, file_pointer);
 
     fclose(file_pointer);
+
+    xsxml_files_object->result = private_result->result_code;
 
     if (private_result->result_code == XSXML_RESULT_SUCCESS)
     {
