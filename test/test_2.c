@@ -22,10 +22,10 @@ limitations under the License.
 
 /*
 To compile:
-gcc -O3 -Wall -std=c17 -Wextra -Wpedantic -pedantic-errors xsxml.c test_1.c -o test_1 -lm
+gcc -O3 -Wall -std=c17 -Wextra -Wpedantic -pedantic-errors xsxml.c test_2.c -o test_2 -lm
 
 To run:
-./test_1
+./test_2
 
 Output:
 Result Message : The file 'test_data.xml' has been successfully parsed.

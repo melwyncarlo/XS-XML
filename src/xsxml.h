@@ -133,12 +133,12 @@ typedef struct Xsxml_Files
 /* RAM mode functions */
 extern Xsxml *xsxml_parse(const char *input_file_path);
 
-size_t *xsxml_occurrence( Xsxml *xsxml_object, 
-                          char *tag_name, 
-                          char *attribute_name, 
-                          char *attribute_value, 
-                          char *content, 
-                          Xsxml_Direction direction);
+extern size_t *xsxml_occurrence( Xsxml *xsxml_object, 
+                                 char *tag_name, 
+                                 char *attribute_name, 
+                                 char *attribute_value, 
+                                 char *content, 
+                                 Xsxml_Direction direction);
 
 extern void xsxml_compile( Xsxml *xsxml_object, 
                            const char *save_directory, 
@@ -154,17 +154,17 @@ extern void xsxml_unset(Xsxml **xsxml_object);
 extern Xsxml_Files *xsxml_files_parse( const char *input_file_path, 
                                        const char *temporary_directory_path);
 
-char *xsxml_files_property( Xsxml_Files *xsxml_files_object, 
-                            size_t node_index, 
-                            Xsxml_Property property_name, 
-                            size_t property_index);
+extern char *xsxml_files_property( Xsxml_Files *xsxml_files_object, 
+                                   size_t node_index, 
+                                   Xsxml_Property property_name, 
+                                   size_t property_index);
 
-size_t *xsxml_files_occurrence( Xsxml_Files *xsxml_files_object, 
-                                char *tag_name, 
-                                char *attribute_name, 
-                                char *attribute_value, 
-                                char *content, 
-                                Xsxml_Direction direction);
+extern size_t *xsxml_files_occurrence( Xsxml_Files *xsxml_files_object, 
+                                       char *tag_name, 
+                                       char *attribute_name, 
+                                       char *attribute_value, 
+                                       char *content, 
+                                       Xsxml_Direction direction);
 
 extern void xsxml_files_unset(Xsxml_Files **xsxml_files_object);
 
