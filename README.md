@@ -64,6 +64,6 @@ The following are a list of files present within the XS-XML library's GitHub rep
 
 ## <br>Motivation
 
-I created this library as a necessity for my other projects. I could not find any viable, single-file, basic XML-parser (one that not just extracts the tag elements, but also connects them in a meaningful way), and so, I decided to create one myself. While using it for my other projects and testing it, I came across a few minor run-time errors (mostly related to segmentation faults due to faulty array memory allocations), which I had immediately corrected.
+I created this library as a necessity for my other projects. I could not find any viable, single-file, basic XML-parser (one that not just extracts the tag elements, but also connects them in a meaningful way), and so, I decided to create one myself. While utilising this library for my projects, and thereby testing it, I came across a few minor run-time errors (mostly related to segmentation faults due to faulty array memory allocations), which I had then immediately corrected.
 
 <br>Hope you find this library useful.
