@@ -16,7 +16,7 @@ Though it can parse [CDATA](https://en.wikipedia.org/wiki/CDATA) and character e
 
 <br>For a quick illustration of the library’s functions (their input names and types, and their output types), and their structures, enumerations and variables, refer to the [**xsxml.h**](https://github.com/melwyncarlo/XS-XML/blob/main/src/xsxml.h) file.
 
-<br>To read more about the XS-XML library, refer to its [**Documentation Manual**](https://github.com/melwyncarlo/XS-XML/blob/main/src/Documentation_Manual.pdf).
+<br>To read more about the XS-XML library, refer to its [**Documentation Manual**](https://github.com/melwyncarlo/XS-XML/blob/main/Documentation_Manual.pdf).
 
 
 
