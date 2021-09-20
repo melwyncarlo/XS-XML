@@ -40,6 +40,12 @@ Though it can parse [CDATA](https://en.wikipedia.org/wiki/CDATA) and character e
 <br>**NOTE:** The FILE mode only works in C, and not in JavaScript (JS), for obvious reasons.
 
 
+<br>
+
+
+![This is the description image.](https://github.com/melwyncarlo/XS-XML/blob/main/Description_Image.png)
+
+
 
 ## <br>Files list
 
