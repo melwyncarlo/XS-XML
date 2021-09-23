@@ -21,6 +21,12 @@ limitations under the License.
 
 
 /*
+NOTE:
+The original XML file size is 982 bytes.
+The 32-bit unsigned integer-based binary file size is 641 bytes (34.73% reduction).
+The 16-bit unsigned integer-based binary file size is 405 bytes (58.76% reduction).
+The  8-bit unsigned integer-based binary file size is 287 bytes (70.77% reduction).
+
 To compile:
 gcc -O3 -Wall -std=c17 -Wextra -Wpedantic -pedantic-errors xsxml.c xsxml_binary_object.c test_6.c -o test_6 -lm
 

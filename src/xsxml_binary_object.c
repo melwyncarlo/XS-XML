@@ -49,6 +49,21 @@ Also note that all alphabetic input and data are case-sensitive.
 
 #define RESULT_MESSAGE_MAX_LENGTH 200
 
+#define UINT_FIXED_BYTES uint8_t
+/*
+Either of the two macros given below can also be used instead, if required:
+1. #define UINT_FIXED_BYTES uint16_t
+2. #define UINT_FIXED_BYTES uint8_t
+
+An 8-bit unsigned integer can deal with a maximum of           256 tag elements (nodes).
+A 16-bit unsigned integer can deal with a maximum of        65,536 tag elements (nodes).
+A 32-bit unsigned integer can deal with a maximum of 4,294,967,296 tag elements (nodes).
+
+An 8-bit-based binary file would be smallest in terms of file size, 
+followed by a 16-bit file, 
+followed by a 32-bit file, which would be comparatively larger in file size.
+*/
+
 
 void create_xsxml_binary_object( Xsxml *xsxml_object, 
                                  const char *save_directory, 
@@ -117,8 +132,8 @@ void create_xsxml_binary_object( Xsxml *xsxml_object,
 
 
     /* Main operation starts here. */
-        int    dummy_value;
-        uint32_t string_len;
+        int      dummy_value;
+        UINT_FIXED_BYTES string_len;
 
         dummy_value = remove(save_file_path);
 
@@ -141,7 +156,7 @@ void create_xsxml_binary_object( Xsxml *xsxml_object,
         /* Write the number of nodes. */
         dummy_value = write( file_descriptor, 
                              &xsxml_object->number_of_nodes, 
-                             sizeof(uint32_t));
+                             sizeof(UINT_FIXED_BYTES));
 
         for (unsigned int i = 0; i < xsxml_object->number_of_nodes; i++)
         {
@@ -161,23 +176,23 @@ void create_xsxml_binary_object( Xsxml *xsxml_object,
             /* Write the node level. */
             dummy_value = write( file_descriptor, 
                                  &xsxml_object->node[i]->depth, 
-                                 sizeof(uint32_t));
+                                 sizeof(UINT_FIXED_BYTES));
 
             /* Write the number of contents. */
             dummy_value = write( file_descriptor, 
                                  &xsxml_object->node[i]->number_of_contents, 
-                                 sizeof(uint32_t));
+                                 sizeof(UINT_FIXED_BYTES));
 
             /* Write the number of attributes. */
             dummy_value = write( file_descriptor, 
                                  &xsxml_object->node[i]->number_of_attributes, 
-                                 sizeof(uint32_t));
+                                 sizeof(UINT_FIXED_BYTES));
 
             /* Write the node name length. */
             string_len = strlen(xsxml_object->node[i]->node_name);
             dummy_value = write( file_descriptor, 
                                  &string_len, 
-                                 sizeof(uint32_t));
+                                 sizeof(UINT_FIXED_BYTES));
 
             /* Write the node name. */
             dummy_value = write( file_descriptor, 
@@ -203,7 +218,7 @@ void create_xsxml_binary_object( Xsxml *xsxml_object,
                 string_len = strlen(xsxml_object->node[i]->content[j]);
                 dummy_value = write( file_descriptor, 
                                      &string_len, 
-                                     sizeof(uint32_t));
+                                     sizeof(UINT_FIXED_BYTES));
 
                 /* Write the jth content. */
                 dummy_value = write( file_descriptor, 
@@ -231,7 +246,7 @@ void create_xsxml_binary_object( Xsxml *xsxml_object,
                 string_len = strlen(xsxml_object->node[i]->attribute_name[j]);
                 dummy_value = write( file_descriptor, 
                                      &string_len, 
-                                     sizeof(uint32_t));
+                                     sizeof(UINT_FIXED_BYTES));
 
                 /* Write the jth attribute name. */
                 dummy_value = write( file_descriptor, 
@@ -242,7 +257,7 @@ void create_xsxml_binary_object( Xsxml *xsxml_object,
                 string_len = strlen(xsxml_object->node[i]->attribute_value[j]);
                 dummy_value = write( file_descriptor, 
                                      &string_len, 
-                                     sizeof(uint32_t));
+                                     sizeof(UINT_FIXED_BYTES));
 
                 /* Write the jth attribute value. */
                 dummy_value = write( file_descriptor, 
@@ -255,7 +270,7 @@ void create_xsxml_binary_object( Xsxml *xsxml_object,
         for (unsigned int i = 0; i < xsxml_object->number_of_nodes; i++)
         {
             /* Write the ancestor, descendant, previous and next siblings nodes. */
-                uint32_t node_numbers[4] = { 0, 0, 0, 0 };
+                UINT_FIXED_BYTES node_numbers[4] = { 0, 0, 0, 0 };
 
                 for (unsigned int j = 0; j < xsxml_object->number_of_nodes; j++)
                 {
@@ -294,19 +309,19 @@ void create_xsxml_binary_object( Xsxml *xsxml_object,
 
                 dummy_value = write( file_descriptor, 
                                      &node_numbers[0], 
-                                     sizeof(uint32_t));
+                                     sizeof(UINT_FIXED_BYTES));
 
                 dummy_value = write( file_descriptor, 
                                      &node_numbers[1], 
-                                     sizeof(uint32_t));
+                                     sizeof(UINT_FIXED_BYTES));
 
                 dummy_value = write( file_descriptor, 
                                      &node_numbers[2], 
-                                     sizeof(uint32_t));
+                                     sizeof(UINT_FIXED_BYTES));
 
                 dummy_value = write( file_descriptor, 
                                      &node_numbers[3], 
-                                     sizeof(uint32_t));
+                                     sizeof(UINT_FIXED_BYTES));
         }
 
         close(file_descriptor);
@@ -359,13 +374,13 @@ Xsxml *decode_xsxml_binary_object(const char *input_file_path)
 
         int dummy_value;
 
-        uint32_t string_len;
+        UINT_FIXED_BYTES string_len;
 
 
         /* Read the number of nodes. */
         dummy_value = read( file_descriptor, 
                             (unsigned int *) &xsxml_object->number_of_nodes, 
-                            sizeof(uint32_t));
+                            sizeof(UINT_FIXED_BYTES));
 
 
         xsxml_object->node = 
@@ -379,22 +394,22 @@ Xsxml *decode_xsxml_binary_object(const char *input_file_path)
             /* Read the node level. */
             dummy_value = read( file_descriptor, 
                                 &xsxml_object->node[i]->depth, 
-                                sizeof(uint32_t));
+                                sizeof(UINT_FIXED_BYTES));
 
             /* Read the number of contents. */
             dummy_value = read( file_descriptor, 
                                 &xsxml_object->node[i]->number_of_contents, 
-                                sizeof(uint32_t));
+                                sizeof(UINT_FIXED_BYTES));
 
             /* Read the number of attributes. */
             dummy_value = read( file_descriptor, 
                                 &xsxml_object->node[i]->number_of_attributes, 
-                                sizeof(uint32_t));
+                                sizeof(UINT_FIXED_BYTES));
 
             /* Read the node name length. */
             dummy_value = read( file_descriptor, 
                                 &string_len, 
-                                sizeof(uint32_t));
+                                sizeof(UINT_FIXED_BYTES));
 
             /* The plus one (+1) is for the null terminator. */
             xsxml_object->node[i]->node_name = (char *) malloc(string_len + 1);
@@ -427,7 +442,7 @@ Xsxml *decode_xsxml_binary_object(const char *input_file_path)
                 /* Read the jth content length. */
                 dummy_value = read( file_descriptor, 
                                     &string_len, 
-                                    sizeof(uint32_t));
+                                    sizeof(UINT_FIXED_BYTES));
 
                 /* The plus one (+1) is for the null terminator. */
                 xsxml_object->node[i]->content[j] = (char *) malloc(string_len + 1);
@@ -467,7 +482,7 @@ Xsxml *decode_xsxml_binary_object(const char *input_file_path)
                 /* Read the jth attribute name length. */
                 dummy_value = read( file_descriptor, 
                                     &string_len, 
-                                    sizeof(uint32_t));
+                                    sizeof(UINT_FIXED_BYTES));
 
                 /* The plus one (+1) is for the null terminator. */
                 xsxml_object->node[i]->attribute_name[j] = (char *) malloc(string_len + 1);
@@ -487,7 +502,7 @@ Xsxml *decode_xsxml_binary_object(const char *input_file_path)
                 /* Read the jth attribute value length. */
                 dummy_value = read( file_descriptor, 
                                     &string_len, 
-                                    sizeof(uint32_t));
+                                    sizeof(UINT_FIXED_BYTES));
 
                 /* The plus one (+1) is for the null terminator. */
                 xsxml_object->node[i]->attribute_value[j] = (char *) malloc(string_len + 1);
@@ -509,12 +524,12 @@ Xsxml *decode_xsxml_binary_object(const char *input_file_path)
 
         for (unsigned int i = 0; i < xsxml_object->number_of_nodes; i++)
         {
-            uint32_t node_number;
+            UINT_FIXED_BYTES node_number;
 
             /* Read the ancestor nodes. */
                 dummy_value = read( file_descriptor, 
                                     &node_number, 
-                                    sizeof(uint32_t));
+                                    sizeof(UINT_FIXED_BYTES));
 
                 if (node_number == 0)
                     xsxml_object->node[i]->ancestor = NULL;
@@ -524,7 +539,7 @@ Xsxml *decode_xsxml_binary_object(const char *input_file_path)
             /* Read the descendant nodes. */
                 dummy_value = read( file_descriptor, 
                                     &node_number, 
-                                    sizeof(uint32_t));
+                                    sizeof(UINT_FIXED_BYTES));
 
                 if (node_number == 0)
                     xsxml_object->node[i]->descendant = NULL;
@@ -534,7 +549,7 @@ Xsxml *decode_xsxml_binary_object(const char *input_file_path)
             /* Read the previous sibling nodes. */
                 dummy_value = read( file_descriptor, 
                                     &node_number, 
-                                    sizeof(uint32_t));
+                                    sizeof(UINT_FIXED_BYTES));
 
                 if (node_number == 0)
                     xsxml_object->node[i]->previous_sibling = NULL;
@@ -544,7 +559,7 @@ Xsxml *decode_xsxml_binary_object(const char *input_file_path)
             /* Read the next sibling nodes. */
                 dummy_value = read( file_descriptor, 
                                     &node_number, 
-                                    sizeof(uint32_t));
+                                    sizeof(UINT_FIXED_BYTES));
 
                 if (node_number == 0)
                     xsxml_object->node[i]->next_sibling = NULL;
