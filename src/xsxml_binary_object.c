@@ -49,7 +49,7 @@ Also note that all alphabetic input and data are case-sensitive.
 
 #define RESULT_MESSAGE_MAX_LENGTH 200
 
-#define UINT_FIXED_BYTES uint8_t
+#define UINT_FIXED_BYTES uint32_t
 /*
 Either of the two macros given below can also be used instead, if required:
 1. #define UINT_FIXED_BYTES uint16_t
