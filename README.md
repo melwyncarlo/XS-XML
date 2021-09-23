@@ -2,10 +2,12 @@
 
 
 ## <br>Description
-**XS-XML is a tiny, basic, single-file, and portable XML parser and compiler.**
+**XS-XML is a tiny, basic, single-file, and portable XML parser and compiler.**<br><br>
 
 
-**||--- A NEW feature has been added in XS-XML version 1.2 ---||**
+**||--- A NEW feature has been added in XS-XML version 1.2 ---||**<br><br>
+**||--- XS-XML is now a file extension, too (\*.xsmxl). ---||**<br><br>
+**||--- XS-XML can now compile and utilise it's very own XML processed binary files. ---||**<br><br>
 
 
 XS-XML stands for *'Extra small XML'*. It works fine with simple XML files written as per 
