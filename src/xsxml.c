@@ -633,19 +633,26 @@ static int parse_sub_operation_ram_mode( Xsxml **xsxml_object,
     }
     else if (parse_mode == XSXML_PCDATA_CONTENT)
     {
-        const size_t n_c = (*xsxml_object)->node[n-1]->number_of_contents;
+        const int is_within_current_tag = node_level;
 
-        (*xsxml_object)->node[n-1]->number_of_contents++;
+        Xsxml_Nodes *this_node;
 
-        (*xsxml_object)->node[n-1]->content = 
-        (char **) realloc( (*xsxml_object)->node[n-1]->content, 
+        if (is_within_current_tag) this_node = (*xsxml_object)->node[n-1];
+        else                       this_node = (*xsxml_object)->node[n-1]->ancestor;
+
+        const size_t n_c = this_node->number_of_contents;
+
+        this_node->number_of_contents++;
+
+        this_node->content = 
+        (char **) realloc( this_node->content, 
                            (n_c + 1) * sizeof(char *));
 
-        (*xsxml_object)->node[n-1]->content[n_c] = (char *) malloc(DATA_LEN + 1);
+        this_node->content[n_c] = (char *) malloc(DATA_LEN + 1);
 
-        (*xsxml_object)->node[n-1]->content[n_c][DATA_LEN] = 0;
+        this_node->content[n_c][DATA_LEN] = 0;
 
-        memcpy( &(*xsxml_object)->node[n-1]->content[n_c][0], 
+        memcpy( &this_node->content[n_c][0], 
                 &data[0], 
                 DATA_LEN);
     }
@@ -946,7 +953,18 @@ static int parse_sub_operation_file_mode( Xsxml_Files **xsxml_files_object,
     }
     else if (parse_mode == XSXML_PCDATA_CONTENT)
     {
-        io_obj.node_j_value  = -1;
+        const int is_within_current_tag = node_level;
+
+        io_obj.node_i_value = n - 1;
+        io_obj.node_j_value = -1;
+
+        if (!is_within_current_tag)
+        {
+            io_obj.property_term = "a";
+            io_obj.data_str      = "dummy";
+            read_from_char_file(&io_obj);
+            io_obj.node_i_value  = io_obj.data_int;
+        }
 
         io_obj.property_term = "cN";
         io_obj.node_i_value  =  n - 1;
@@ -1001,6 +1019,8 @@ static Xsxml_Private_Result *parse_operation( void **object,
     int XML_CDATA_CONTENT       = 0;
     int XML_CDATA_START_TAG     = 0;
     int XML_PCDATA_CONTENT      = 0;
+
+    int XML_TAG_RECENTLY_CLOSED = 0;
 
 
     int cer_i      = 0;                 /* Character entry reference count */
@@ -1211,10 +1231,14 @@ static Xsxml_Private_Result *parse_operation( void **object,
 
                 /* Working on PCDATA. */
 
-                if (word[strlen(word) - 1] == ' ')
-                    word[strlen(word) - 1] = '\0';
-
                 word [word_len] = 0;
+
+                if (word[word_len - 1] == ' ')
+                {
+                    word[word_len - 1] = '\0';
+
+                    word_len--;
+                }
 
                 if (strstr(word, "<![CDATA[") != NULL)
                 {
@@ -1230,14 +1254,14 @@ static Xsxml_Private_Result *parse_operation( void **object,
                 {
                     parse_sub_operation_ram_mode( (Xsxml **) object, 
                                                    XSXML_PCDATA_CONTENT, 
-                                                   node_level, 
+                                                   !XML_TAG_RECENTLY_CLOSED, 
                                                    word);
                 }
                 else /* if (access_mode == XSXML_FILE_MODE) */
                 {
                     parse_sub_operation_file_mode( (Xsxml_Files **) object, 
                                                     XSXML_PCDATA_CONTENT, 
-                                                    node_level, 
+                                                    !XML_TAG_RECENTLY_CLOSED, 
                                                     word);
                 }
 
@@ -1475,10 +1499,14 @@ static Xsxml_Private_Result *parse_operation( void **object,
                     return result_obj;
                 }
 
+                XML_TAG_RECENTLY_CLOSED = 0;
+
                 if (XML_FORWARD_SLASH_END)
                 {
                     node_level--;
-                    XML_FORWARD_SLASH_END = 0;
+                    XML_FORWARD_SLASH_END   = 0;
+
+                    XML_TAG_RECENTLY_CLOSED = 1;
                 }
 
                 if (XML_ATTRIBUTE)
@@ -1497,6 +1525,9 @@ static Xsxml_Private_Result *parse_operation( void **object,
                     node_level--;
                     XML_FORWARD_SLASH_START = 0;
                     reset_word(&word, &word_len);
+
+                    XML_TAG_RECENTLY_CLOSED = 1;
+
                     continue;
                 }
 
@@ -1999,6 +2030,8 @@ Xsxml *xsxml_parse(const char *input_file_path)
 
     xsxml_object->number_of_nodes = 0;
 
+    xsxml_object->node = (Xsxml_Nodes **) malloc(sizeof(Xsxml_Nodes *));
+
     Xsxml_Private_Result *private_result = 
     parse_operation((void **)&xsxml_object, XSXML_RAM_MODE, file_pointer);
 
@@ -2035,7 +2068,7 @@ Xsxml *xsxml_parse(const char *input_file_path)
 Xsxml_Files *xsxml_files_parse( const char *input_file_path, 
                                 const char *temporary_directory_path)
 {
-    Xsxml_Files *xsxml_files_object = (Xsxml_Files *) malloc(sizeof(Xsxml));
+    Xsxml_Files *xsxml_files_object = (Xsxml_Files *) malloc(sizeof(Xsxml_Files));
 
     xsxml_files_object->result_message = (char *) malloc(RESULT_MESSAGE_MAX_LENGTH);
 
@@ -2064,9 +2097,7 @@ Xsxml_Files *xsxml_files_parse( const char *input_file_path,
 
 
     /* The plus one (+1) is for the char array's null terminator. */
-    xsxml_files_object->node_file_name = 
-    (char *) realloc( xsxml_files_object->node_file_name, 
-                      NODE_FILE_NAME_SIZE + 1);
+    xsxml_files_object->node_file_name = (char *) malloc(NODE_FILE_NAME_SIZE + 1);
 
     xsxml_files_object->node_file_name [NODE_FILE_NAME_SIZE] = 0;
 
@@ -2084,11 +2115,9 @@ Xsxml_Files *xsxml_files_parse( const char *input_file_path,
     {
         const int TEMPORARY_DIRECTORY_PATH_LEN = strlen(temporary_directory_path);
 
-        /* The plus one (+1) is for the char array's null terminator,      */
-        /* plus an additional forward slash (/), if required.                 */
-        xsxml_files_object->node_directory_path = 
-        (char *) realloc( xsxml_files_object->node_directory_path, 
-                          TEMPORARY_DIRECTORY_PATH_LEN + 1);
+        /* The plus one (+1) is for the char array's null terminator, */
+        /* plus an additional forward slash (/), if required.         */
+        xsxml_files_object->node_directory_path = (char *) malloc(TEMPORARY_DIRECTORY_PATH_LEN + 1);
 
         memcpy( &xsxml_files_object->node_directory_path[0], 
                 &temporary_directory_path[0], 
@@ -2135,17 +2164,14 @@ Xsxml_Files *xsxml_files_parse( const char *input_file_path,
 
         if (file_path_split == NULL)
         {
-            xsxml_files_object->node_directory_path = 
-            (char *) realloc(xsxml_files_object->node_directory_path, 1);
+            xsxml_files_object->node_directory_path = (char *) malloc(1);
 
             xsxml_files_object->node_directory_path[0] = 0;
         }
         else
         {
             /* The plus one (+1) is for the char array's null terminator. */
-            xsxml_files_object->node_directory_path = 
-            (char *) realloc( xsxml_files_object->node_directory_path, 
-                              strlen(input_file_path));
+            xsxml_files_object->node_directory_path = (char *) malloc(strlen(input_file_path));
 
             memcpy( &xsxml_files_object->node_directory_path[0], 
                     &input_file_path[0], 

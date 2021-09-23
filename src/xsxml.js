@@ -358,9 +358,20 @@ function parse_sub_operation_ram_mode(xsxml_object, parse_mode, node_level, data
     }
     else if (parse_mode == Xsxml_Parse_Mode.XSXML_PCDATA_CONTENT)
     {
-        xsxml_object.node[n-1].number_of_contents++;
+        const is_within_current_tag = node_level;
 
-        xsxml_object.node[n-1].content.push(data);
+        if (is_within_current_tag)
+        {
+            xsxml_object.node[n-1].number_of_contents++;
+
+            xsxml_object.node[n-1].content.push(data);
+        }
+        else
+        {
+            xsxml_object.node[n-1].ancestor.number_of_contents++;
+
+            xsxml_object.node[n-1].ancestor.content.push(data);
+        }
     }
 
     return 1;
@@ -427,6 +438,8 @@ async function xsxml_parse(input_file)
     var XML_CDATA_CONTENT       = 0;
     var XML_CDATA_START_TAG     = 0;
     var XML_PCDATA_CONTENT      = 0;
+
+    var XML_TAG_RECENTLY_CLOSED = 0;
 
 
     var cer_i      = 0;                 /* Character entry reference count */
@@ -650,7 +663,7 @@ async function xsxml_parse(input_file)
 
                 parse_sub_operation_ram_mode( xsxml_object, 
                                               Xsxml_Parse_Mode.XSXML_PCDATA_CONTENT, 
-                                              node_level, 
+                                              !XML_TAG_RECENTLY_CLOSED, 
                                               word_object.word);
 
                 reset_word(word_object);
@@ -850,10 +863,14 @@ async function xsxml_parse(input_file)
                     return xsxml_object;
                 }
 
+                XML_TAG_RECENTLY_CLOSED = 0;
+
                 if (XML_FORWARD_SLASH_END)
                 {
                     node_level--;
-                    XML_FORWARD_SLASH_END = 0;
+                    XML_FORWARD_SLASH_END   = 0;
+
+                    XML_TAG_RECENTLY_CLOSED = 1;
                 }
 
                 if (XML_ATTRIBUTE)
@@ -872,6 +889,9 @@ async function xsxml_parse(input_file)
                     node_level--;
                     XML_FORWARD_SLASH_START = 0;
                     reset_word(word_object);
+
+                    XML_TAG_RECENTLY_CLOSED = 1;
+
                     continue;
                 }
 
