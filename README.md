@@ -5,6 +5,9 @@
 **XS-XML is a tiny, basic, single-file, and portable XML parser and compiler.**
 
 
+**||--- A NEW feature has been added in XS-XML version 1.2 ---||**
+
+
 XS-XML stands for *'Extra small XML'*. It works fine with simple XML files written as per 
 the standards of *version 1.0* and encoding of *UTF-8*.
 
@@ -36,6 +39,7 @@ Though it can parse [CDATA](https://en.wikipedia.org/wiki/CDATA) and character e
 * The FILE mode relies on the computer file system
 * The FILE mode utilises negligible RAM space
 * Written in two programming languages: C and JavaScript (JS)
+* **NEW FEATURE ADDED:** <br>Create processed XML binary object files that act as memory resident databases (Linux and POSIX only).
 
 <br>**NOTE:** The FILE mode only works in C, and not in JavaScript (JS), for obvious reasons.
 
@@ -58,13 +62,17 @@ The following are a list of files present within the XS-XML library's GitHub rep
 | 1. | xsxml.c | The XS-XML C source code file |
 | 2. | xsxml.h | The XS-XML C header  file     |
 | 3. | xsxml.js | The XS-XML JavaScript source code file |
-| 4. | test_1.c | The RAM  mode XML parse example test file in C |
-| 5. | test_2.c | The FILE mode XML parse example test file in C |
-| 6. | test_3.c | The RAM mode XML compile example test file in C |
-| 7. | test_4.html | The XML parse example test file in JavaScript |
-| 8. | test_5.html | The XML compile example test file in JavaScript |
-| 9. | test_data.xml | The example test XML data file |
-| 10. | Documentation_Manual.pdf | The Documentation Manual PDF file |
+| 4. | xsxml_binary_object.c **[NEW]** | The XS-XML binary object C source code file |
+| 5. | xsxml_binary_object.h **[NEW]** | The XS-XML binary object C header  file     |
+| 6. | test_1.c | The RAM  mode XML parse example test file in C |
+| 7. | test_2.c | The FILE mode XML parse example test file in C |
+| 8. | test_3.c | The RAM mode XML compile example test file in C |
+| 9. | test_4.html | The XML parse example test file in JavaScript |
+| 10. | test_5.html | The XML compile example test file in JavaScript |
+| 11. | test_6.c **[NEW]** | Create a processed XML binary object file |
+| 12. | test_7.c **[NEW]** | Test the processed XML binary object file |
+| 13. | test_data.xml | The example test XML data file |
+| 14. | Documentation_Manual.pdf | The Documentation Manual PDF file |
 <br>
 
 
