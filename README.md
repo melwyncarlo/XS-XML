@@ -39,7 +39,7 @@ Though it can parse [CDATA](https://en.wikipedia.org/wiki/CDATA) and character e
 * The FILE mode relies on the computer file system
 * The FILE mode utilises negligible RAM space
 * Written in two programming languages: C and JavaScript (JS)
-* **NEW FEATURE ADDED:** <br>Create processed XML binary object files that act as memory resident databases (Linux and POSIX only).
+* **NEW FEATURE ADDED:** <br>Create processed XS-XML binary object files that act as memory resident databases (Linux and POSIX only).<br>The created XS-XML binary object file would be smaller in file size than its original XML file (between one-half and two-thirds).
 
 <br>**NOTE:** The FILE mode only works in C, and not in JavaScript (JS), for obvious reasons.
 
